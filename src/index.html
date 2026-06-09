@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base href="/run/surveys/" />
+  <title>Surveys</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:            var(--hub-bg, #f9fafb);
+      --card:          var(--hub-surface, #ffffff);
+      --border:        var(--hub-border, #e5e7eb);
+      --border-mid:    var(--hub-border, #d1d5db);
+      --text:          var(--hub-text, #111827);
+      --muted:         var(--hub-text-muted, #6b7280);
+      --accent:        var(--hub-primary, #111827);
+      --accent-fg:     var(--hub-primary-fg, #ffffff);
+      --accent-hover:  var(--hub-primary-hover, #374151);
+      --accent-light:  #f3f4f6;
+      --green: #059669;
+      --green-light: #d1fae5;
+      --red: #dc2626;
+      --red-light: #fee2e2;
+      --amber: #d97706;
+      --amber-light: #fef3c7;
+      --radius: var(--hub-radius, 0.5rem);
+      --shadow: 0 1px 3px rgba(0,0,0,.07);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    body {
+      font-family: var(--hub-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: var(--hub-font-size, 15px);
+      line-height: 1.5;
+    }
+
+    .app { max-width: 600px; margin: 0 auto; padding: 16px 16px 60px; }
+
+    /* ── Typography ─────────────────────────────────────── */
+    .section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 8px;
+    }
+
+    /* ── Buttons ────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s, background .15s;
+      text-decoration: none;
+    }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn-primary { background: var(--accent); color: var(--accent-fg); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1.5px solid var(--border-mid); }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .btn-danger { background: var(--red); color: white; }
+    .btn-danger:hover:not(:disabled) { opacity: .88; }
+    .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+    .btn-block { width: 100%; justify-content: center; }
+
+    /* ── Cards ──────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 10px;
+    }
+    .card-body { padding: 16px; }
+
+    /* ── Header ─────────────────────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 10px;
+    }
+    .page-header h1 { font-size: 1.25rem; font-weight: 700; }
+
+    .avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 800;
+      color: white;
+      flex-shrink: 0;
+    }
+    .avatar-sm {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 800;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    /* ── Tabs ───────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--border);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 16px;
+    }
+    .tab {
+      flex: 1;
+      padding: 7px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: transparent;
+      color: var(--muted);
+    }
+    .tab.active { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
+
+    /* ── Survey list cards ─────────────────────────────── */
+    .survey-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: box-shadow .15s, border-color .15s;
+    }
+    .survey-card:hover { box-shadow: var(--shadow-md); border-color: var(--border-mid); }
+    .survey-card-inner { padding: 14px 16px; }
+    .survey-title {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .survey-desc {
+      font-size: 0.84rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .survey-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .badge-open { background: var(--green-light); color: var(--green); }
+    .badge-closed { background: #f1f5f9; color: var(--muted); }
+    .badge-done { background: var(--accent-light); color: var(--accent); }
+    .badge-anon { background: var(--amber-light); color: var(--amber); }
+
+    /* ── Empty state ────────────────────────────────────── */
+    .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+    .empty .icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .empty h3 { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .empty p { font-size: 0.85rem; line-height: 1.6; }
+    .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 0.9rem; }
+
+    /* ── Take-survey flow ───────────────────────────────── */
+    .take-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .back-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: var(--muted);
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+    .back-btn:hover { background: var(--accent-light); color: var(--text); }
+
+    .q-progress-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .q-progress {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .q-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width .25s ease;
+    }
+
+    .question-text {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      line-height: 1.4;
+    }
+
+    .answer-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      border: 1.5px solid var(--border-mid);
+      border-radius: var(--radius);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .answer-btn:hover { border-color: var(--accent); }
+    .answer-btn.selected {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      font-weight: 700;
+    }
+
+    .answer-row { display: flex; gap: 8px; }
+    .answer-row .answer-btn { text-align: center; flex: 1; }
+
+    .answer-textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border-mid);
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: vertical;
+      background: var(--card);
+      color: var(--text);
+    }
+    .answer-textarea:focus { outline: none; border-color: var(--accent); }
+
+    .take-nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    /* ── Results ────────────────────────────────────────── */
+    .result-block { margin-bottom: 18px; }
+    .result-question {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .result-row { margin-bottom: 8px; }
+    .result-row-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.84rem;
+      margin-bottom: 4px;
+      gap: 8px;
+    }
+    .result-row-label .opt { font-weight: 500; }
+    .result-row-label .stat { color: var(--muted); white-space: nowrap; }
+    .result-bar {
+      height: 10px;
+      background: var(--accent-light);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .result-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 5px;
+      transition: width .3s ease;
+    }
+    .result-avg {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .result-avg span { font-size: 0.9rem; font-weight: 500; color: var(--muted); }
+
+    .text-response {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .text-response:last-child { border-bottom: none; }
+    .text-response .who { font-weight: 600; font-size: 0.78rem; color: var(--muted); margin-bottom: 2px; }
+
+    .response-summary {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .waiting-card {
+      text-align: center;
+      padding: 32px 20px;
+    }
+    .waiting-card .icon { font-size: 2rem; margin-bottom: 10px; }
+    .waiting-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .waiting-card p { font-size: 0.85rem; color: var(--muted); }
+
+    /* ── Modal ──────────────────────────────────────────── */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 100;
+    }
+    @media (min-width: 540px) {
+      .modal-backdrop { align-items: center; padding: 20px; }
+    }
+    .modal {
+      background: var(--card);
+      border-radius: var(--radius) var(--radius) 0 0;
+      width: 100%; max-width: 540px;
+      max-height: 92vh; overflow-y: auto;
+      padding: 20px;
+    }
+    @media (min-width: 540px) {
+      .modal { border-radius: var(--radius); }
+    }
+    .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .form-group input[type="text"],
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border-mid);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: var(--card);
+      color: var(--text);
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus { outline: none; border-color: var(--accent); }
+    .form-group textarea { min-height: 70px; resize: vertical; }
+    .checkbox-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      margin-bottom: 14px;
+    }
+    .checkbox-row input { width: 16px; height: 16px; }
+
+    .question-draft {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .question-draft-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .question-draft-header .num { font-size: 0.78rem; font-weight: 700; color: var(--muted); }
+    .remove-q-btn {
+      background: transparent; border: none; color: var(--muted);
+      cursor: pointer; font-size: 0.95rem; padding: 2px 6px; border-radius: 6px;
+    }
+    .remove-q-btn:hover { color: var(--red); background: var(--red-light); }
+
+    .option-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+    .option-row input { flex: 1; }
+    .option-row button {
+      background: transparent; border: none; color: var(--muted);
+      cursor: pointer; font-size: 0.9rem; padding: 4px 8px;
+    }
+    .option-row button:hover { color: var(--red); }
+
+    .modal-actions {
+      display: flex; justify-content: flex-end; gap: 8px;
+      margin-top: 18px;
+    }
+    .modal-actions .spacer { flex: 1; }
+
+    .step-indicator {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="loading">Loading surveys…</div>
+  </div>
+
+  <script type="module">
+    import {
+      memberColor, initial, esc, isAdult, formatRelativeDate,
+    } from "/hub-sdk.js";
+    import {
+      surveyStatus, isSurveyOpen, hasResponded, responseCount, canManage,
+      choiceResults, ratingAverage, ratingDistribution, yesNoSplit,
+      isAnswerValid, allAnswered,
+    } from "./logic.js";
+
+    // ── Runtime globals ──────────────────────────────────────────────────────
+    const CONTEXT = window.__CONTEXT_URL ?? "";
+    const DB      = window.__DB_URL ?? "";
+    const APP_ID  = window.__APP_ID ?? "surveys";
+    let   ME      = window.__CURRENT_MEMBER ?? null;
+
+    // ── State ────────────────────────────────────────────────────────────────
+    let members      = [];
+    let memberMap    = new Map();
+    let surveys      = [];
+    let questionCounts  = new Map(); // surveyId -> number of questions
+    let responseCounts  = new Map(); // surveyId -> number of distinct respondents
+    let myResponseIds   = new Set(); // surveyIds I've responded to
+
+    let listTab       = "active"; // "active" | "closed"
+    let view          = "list";   // "list" | "take" | "results"
+    let currentSurvey = null;
+    let currentQuestions = [];
+    let currentResponses = [];
+    let currentStep   = 0;
+    let answers       = {};       // questionId -> answer string
+
+    let modalEl = null;
+
+    // ── DB helper ────────────────────────────────────────────────────────────
+    async function db(sql, params = []) {
+      if (!DB) return { rows: [] };
+      try {
+        const res = await fetch(DB, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sql, params }),
+        });
+        return await res.json();
+      } catch { return { rows: [] }; }
+    }
+
+    // ── Demo data ────────────────────────────────────────────────────────────
+    const DEMO_MEMBERS = [
+      { id: "demo-1", name: "Alex", role: "adult" },
+      { id: "demo-2", name: "Sam", role: "adult" },
+      { id: "demo-3", name: "Jordan", role: "child" },
+    ];
+
+    function buildDemoData() {
+      const s1 = "demo-survey-open";
+      const s2 = "demo-survey-closed";
+      surveys = [
+        {
+          id: s1, title: "Summer Trip Planning", description: "Help us pick this summer's family trip!",
+          status: "open", anonymous: 0, created_by: "demo-1",
+          created_at: new Date(Date.now() - 2 * 86400000).toISOString(), closed_at: null,
+        },
+        {
+          id: s2, title: "Family Movie Night Feedback", description: "How did last weekend's movie night go?",
+          status: "closed", anonymous: 1, created_by: "demo-2",
+          created_at: new Date(Date.now() - 9 * 86400000).toISOString(),
+          closed_at: new Date(Date.now() - 1 * 86400000).toISOString(),
+        },
+      ];
+
+      currentQuestionsCache.set(s1, [
+        { id: "q1", survey_id: s1, text: "Where should we go this summer?", type: "choice", options: ["Beach","Mountains","City trip","Stay home"], position: 0 },
+        { id: "q2", survey_id: s1, text: "On a scale of 1-5, how excited are you?", type: "rating", options: [], position: 1 },
+        { id: "q3", survey_id: s1, text: "Should we invite the cousins?", type: "yesno", options: [], position: 2 },
+        { id: "q4", survey_id: s1, text: "Any other ideas or requests?", type: "text", options: [], position: 3 },
+      ]);
+
+      currentQuestionsCache.set(s2, [
+        { id: "qc1", survey_id: s2, text: "How was the movie pick?", type: "choice", options: ["Loved it","It was okay","Not for me"], position: 0 },
+        { id: "qc2", survey_id: s2, text: "Rate the snacks (1-5)", type: "rating", options: [], position: 1 },
+        { id: "qc3", survey_id: s2, text: "Should we do this again?", type: "yesno", options: [], position: 2 },
+        { id: "qc4", survey_id: s2, text: "Suggestions for next time?", type: "text", options: [], position: 3 },
+      ]);
+
+      currentResponsesCache.set(s2, [
+        { id: "r1", survey_id: s2, question_id: "qc1", member_id: "demo-1", answer: "Loved it" },
+        { id: "r2", survey_id: s2, question_id: "qc1", member_id: "demo-2", answer: "It was okay" },
+        { id: "r3", survey_id: s2, question_id: "qc1", member_id: "demo-3", answer: "Loved it" },
+        { id: "r4", survey_id: s2, question_id: "qc2", member_id: "demo-1", answer: "5" },
+        { id: "r5", survey_id: s2, question_id: "qc2", member_id: "demo-2", answer: "4" },
+        { id: "r6", survey_id: s2, question_id: "qc2", member_id: "demo-3", answer: "5" },
+        { id: "r7", survey_id: s2, question_id: "qc3", member_id: "demo-1", answer: "yes" },
+        { id: "r8", survey_id: s2, question_id: "qc3", member_id: "demo-2", answer: "yes" },
+        { id: "r9", survey_id: s2, question_id: "qc3", member_id: "demo-3", answer: "no" },
+        { id: "r10", survey_id: s2, question_id: "qc4", member_id: "demo-1", answer: "More popcorn next time!" },
+        { id: "r11", survey_id: s2, question_id: "qc4", member_id: "demo-3", answer: "Pick a shorter movie." },
+      ]);
+
+      questionCounts.set(s1, 4);
+      questionCounts.set(s2, 4);
+      responseCounts.set(s1, 0);
+      responseCounts.set(s2, 3);
+      myResponseIds = new Set();
+    }
+
+    // Per-survey caches for questions/responses (avoids re-fetching when revisiting)
+    const currentQuestionsCache = new Map();
+    const currentResponsesCache = new Map();
+
+    // ── Loading ──────────────────────────────────────────────────────────────
+    async function loadMembers() {
+      if (!CONTEXT) {
+        members = DEMO_MEMBERS;
+        memberMap = new Map(members.map(m => [m.id, m]));
+        if (!ME) ME = members[0];
+        return;
+      }
+      try {
+        const res = await fetch(`${CONTEXT}?keys=family.members`);
+        members = ((await res.json())["family.members"]) ?? [];
+      } catch { members = []; }
+      memberMap = new Map(members.map(m => [m.id, m]));
+    }
+
+    async function loadSurveys() {
+      if (!DB) { buildDemoData(); return; }
+
+      const [surveysRes, qCountRes, rCountRes, myRes] = await Promise.all([
+        db("SELECT * FROM surveys ORDER BY created_at DESC"),
+        db("SELECT survey_id, COUNT(*) as cnt FROM questions GROUP BY survey_id"),
+        db("SELECT survey_id, COUNT(DISTINCT member_id) as cnt FROM responses GROUP BY survey_id"),
+        ME ? db("SELECT DISTINCT survey_id FROM responses WHERE member_id = ?", [ME.id]) : Promise.resolve({ rows: [] }),
+      ]);
+
+      surveys = surveysRes.rows ?? [];
+      questionCounts = new Map((qCountRes.rows ?? []).map(r => [r.survey_id, Number(r.cnt)]));
+      responseCounts = new Map((rCountRes.rows ?? []).map(r => [r.survey_id, Number(r.cnt)]));
+      myResponseIds = new Set((myRes.rows ?? []).map(r => r.survey_id));
+    }
+
+    async function loadSurveyDetail(surveyId) {
+      if (currentQuestionsCache.has(surveyId)) {
+        currentQuestions = currentQuestionsCache.get(surveyId);
+      } else {
+        const res = await db("SELECT * FROM questions WHERE survey_id = ? ORDER BY position", [surveyId]);
+        currentQuestions = (res.rows ?? []).map(q => ({ ...q, options: JSON.parse(q.options || "[]") }));
+        currentQuestionsCache.set(surveyId, currentQuestions);
+      }
+
+      const survey = surveys.find(s => s.id === surveyId);
+      if (survey && survey.status === "closed") {
+        if (currentResponsesCache.has(surveyId)) {
+          currentResponses = currentResponsesCache.get(surveyId);
+        } else {
+          const res = await db("SELECT * FROM responses WHERE survey_id = ?", [surveyId]);
+          currentResponses = res.rows ?? [];
+          currentResponsesCache.set(surveyId, currentResponses);
+        }
+      } else {
+        currentResponses = [];
+      }
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function uid() { return crypto.randomUUID(); }
+    function nowIso() { return new Date().toISOString(); }
+    function memberName(id) { return memberMap.get(id)?.name ?? "Unknown"; }
+
+    async function notify(title, body) {
+      await fetch("/api/notifications/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, body, url: `/run/${APP_ID}` }),
+      }).catch(() => {});
+    }
+
+    async function logActivity(type, description, surveyId) {
+      await fetch("/api/activity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type, description,
+          metadata: { deepLink: { appId: APP_ID, params: { surveyId } } },
+        }),
+      }).catch(() => {});
+    }
+
+    // ── Modal ────────────────────────────────────────────────────────────────
+    function openModal(html) {
+      closeModal();
+      modalEl = document.createElement("div");
+      modalEl.className = "modal-backdrop";
+      modalEl.innerHTML = `<div class="modal">${html}</div>`;
+      modalEl.addEventListener("click", e => { if (e.target === modalEl) closeModal(); });
+      document.body.appendChild(modalEl);
+    }
+    function closeModal() { modalEl?.remove(); modalEl = null; }
+
+    // ── Survey navigation ────────────────────────────────────────────────────
+    window.openSurvey = async function(surveyId) {
+      const survey = surveys.find(s => s.id === surveyId);
+      if (!survey) return;
+      currentSurvey = survey;
+      await loadSurveyDetail(surveyId);
+
+      if (isSurveyOpen(survey) && !myResponseIds.has(surveyId)) {
+        view = "take";
+        currentStep = 0;
+        answers = {};
+      } else {
+        view = "results";
+      }
+      render();
+    };
+
+    window.backToList = function() {
+      view = "list";
+      currentSurvey = null;
+      currentQuestions = [];
+      currentResponses = [];
+      render();
+    };
+
+    window.switchTab = function(tab) {
+      listTab = tab;
+      render();
+    };
+
+    // ── Take-survey flow ─────────────────────────────────────────────────────
+    window.selectAnswer = function(questionId, value) {
+      answers[questionId] = value;
+      render();
+    };
+
+    window.setTextAnswer = function(questionId, value) {
+      answers[questionId] = value;
+      // No re-render needed — textarea keeps its own state while typing.
+    };
+
+    window.goToStep = function(step) {
+      currentStep = step;
+      render();
+    };
+
+    window.prevQuestion = function() {
+      if (currentStep === 0) {
+        backToList();
+        return;
+      }
+      currentStep--;
+      render();
+    };
+
+    window.nextQuestion = function() {
+      const q = currentQuestions[currentStep];
+      if (!isAnswerValid(q, answers[q.id])) return;
+      if (currentStep < currentQuestions.length - 1) {
+        currentStep++;
+        render();
+      } else {
+        submitSurvey();
+      }
+    };
+
+    async function submitSurvey() {
+      if (!allAnswered(currentQuestions, answers)) return;
+      const survey = currentSurvey;
+      const now = nowIso();
+
+      const btn = document.querySelector(".take-nav .btn-primary");
+      if (btn) { btn.disabled = true; btn.textContent = "Submitting…"; }
+
+      const rows = currentQuestions.map(q => ({
+        id: uid(), survey_id: survey.id, question_id: q.id,
+        member_id: ME.id, answer: answers[q.id], created_at: now,
+      }));
+
+      try {
+        await Promise.all(rows.map(r => db(
+          `INSERT INTO responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+          [r.id, r.survey_id, r.question_id, r.member_id, r.answer, r.created_at]
+        )));
+
+        // Update local state and render immediately — no reload.
+        currentResponsesCache.delete(survey.id); // results will reload fresh once closed
+        myResponseIds.add(survey.id);
+        responseCounts.set(survey.id, (responseCounts.get(survey.id) ?? 0) + 1);
+
+        view = "list";
+        currentSurvey = null;
+        render();
+
+        Promise.all([
+          notify(`New survey response`, `${ME.name} responded to "${survey.title}".`),
+          logActivity("survey_response", `${ME.name} responded to "${survey.title}"`, survey.id),
+        ]).catch(() => {});
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = "Submit"; }
+      }
+    }
+
+    // ── Close survey ─────────────────────────────────────────────────────────
+    window.closeSurvey = async function(surveyId) {
+      const survey = surveys.find(s => s.id === surveyId);
+      if (!survey) return;
+      const now = nowIso();
+
+      await db(`UPDATE surveys SET status = 'closed', closed_at = ? WHERE id = ?`, [now, surveyId]);
+
+      survey.status = "closed";
+      survey.closed_at = now;
+      currentResponsesCache.delete(surveyId);
+      if (currentSurvey?.id === surveyId) {
+        await loadSurveyDetail(surveyId);
+        view = "results";
+      }
+      render();
+
+      Promise.all([
+        notify(`Survey closed`, `Results for "${survey.title}" are ready.`),
+        logActivity("survey_closed", `${ME?.name ?? "Someone"} closed the survey "${survey.title}"`, surveyId),
+      ]).catch(() => {});
+    };
+
+    // ── Create survey modal ──────────────────────────────────────────────────
+    let surveyForm = null;
+
+    window.openCreateSurvey = function() {
+      surveyForm = {
+        step: 1,
+        title: "",
+        description: "",
+        anonymous: false,
+        questions: [{ text: "", type: "yesno", options: ["", ""] }],
+      };
+      renderCreateModal();
+    };
+
+    function renderCreateModal() {
+      if (surveyForm.step === 1) {
+        openModal(`
+          <div class="step-indicator">Step 1 of 2 — Details</div>
+          <h2>New Survey</h2>
+          <div class="form-group">
+            <label for="f-title">Title</label>
+            <input type="text" id="f-title" value="${esc(surveyForm.title)}" placeholder="e.g. Summer Trip Planning" />
+          </div>
+          <div class="form-group">
+            <label for="f-desc">Description (optional)</label>
+            <textarea id="f-desc" placeholder="What's this survey about?">${esc(surveyForm.description)}</textarea>
+          </div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="f-anon" ${surveyForm.anonymous ? "checked" : ""} />
+            Anonymous responses
+          </label>
+          <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeCreateModal()">Cancel</button>
+            <span class="spacer"></span>
+            <button class="btn btn-primary" onclick="goToStep2()">Next</button>
+          </div>
+        `);
+      } else {
+        const questionsHtml = surveyForm.questions.map((q, i) => questionDraftHtml(q, i)).join("");
+        openModal(`
+          <div class="step-indicator">Step 2 of 2 — Questions</div>
+          <h2>Build Your Survey</h2>
+          ${questionsHtml}
+          ${surveyForm.questions.length < 10 ? `<button class="btn btn-ghost btn-block" onclick="addQuestion()">+ Add Question</button>` : ""}
+          <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="goToStep1()">Back</button>
+            <span class="spacer"></span>
+            <button class="btn btn-primary" onclick="launchSurvey()">Launch Survey</button>
+          </div>
+        `);
+      }
+      requestAnimationFrame(() => modalEl?.querySelector("input, textarea, select")?.focus());
+    }
+
+    function questionDraftHtml(q, i) {
+      const optionsHtml = q.type === "choice" ? `
+        <div class="form-group">
+          <label>Options</label>
+          ${q.options.map((opt, oi) => `
+            <div class="option-row">
+              <input type="text" value="${esc(opt)}" placeholder="Option ${oi + 1}" oninput="updateOption(${i}, ${oi}, this.value)" />
+              ${q.options.length > 2 ? `<button onclick="removeOption(${i}, ${oi})" title="Remove option">✕</button>` : ""}
+            </div>
+          `).join("")}
+          ${q.options.length < 5 ? `<button class="btn btn-ghost btn-sm" onclick="addOption(${i})">+ Add option</button>` : ""}
+        </div>
+      ` : "";
+
+      return `
+        <div class="question-draft">
+          <div class="question-draft-header">
+            <span class="num">Question ${i + 1}</span>
+            ${surveyForm.questions.length > 1 ? `<button class="remove-q-btn" onclick="removeQuestion(${i})" title="Remove question">✕</button>` : ""}
+          </div>
+          <div class="form-group">
+            <input type="text" value="${esc(q.text)}" placeholder="Question text" oninput="updateQuestionText(${i}, this.value)" />
+          </div>
+          <div class="form-group">
+            <label>Answer type</label>
+            <select onchange="updateQuestionType(${i}, this.value)">
+              <option value="yesno" ${q.type === "yesno" ? "selected" : ""}>Yes / No</option>
+              <option value="choice" ${q.type === "choice" ? "selected" : ""}>Multiple choice</option>
+              <option value="rating" ${q.type === "rating" ? "selected" : ""}>Rating (1-5)</option>
+              <option value="text" ${q.type === "text" ? "selected" : ""}>Text answer</option>
+            </select>
+          </div>
+          ${optionsHtml}
+        </div>
+      `;
+    }
+
+    window.goToStep1 = function() {
+      // Persist current step-1 field values before navigating back
+      surveyForm.title = document.getElementById("f-title")?.value ?? surveyForm.title;
+      surveyForm.description = document.getElementById("f-desc")?.value ?? surveyForm.description;
+      surveyForm.anonymous = document.getElementById("f-anon")?.checked ?? surveyForm.anonymous;
+      surveyForm.step = 1;
+      renderCreateModal();
+    };
+
+    window.goToStep2 = function() {
+      const title = document.getElementById("f-title").value.trim();
+      if (!title) { document.getElementById("f-title").focus(); return; }
+      surveyForm.title = title;
+      surveyForm.description = document.getElementById("f-desc").value.trim();
+      surveyForm.anonymous = document.getElementById("f-anon").checked;
+      surveyForm.step = 2;
+      renderCreateModal();
+    };
+
+    window.addQuestion = function() {
+      surveyForm.questions.push({ text: "", type: "yesno", options: ["", ""] });
+      renderCreateModal();
+    };
+
+    window.removeQuestion = function(i) {
+      surveyForm.questions.splice(i, 1);
+      renderCreateModal();
+    };
+
+    window.updateQuestionText = function(i, value) {
+      surveyForm.questions[i].text = value;
+    };
+
+    window.updateQuestionType = function(i, value) {
+      surveyForm.questions[i].type = value;
+      if (value === "choice" && surveyForm.questions[i].options.length < 2) {
+        surveyForm.questions[i].options = ["", ""];
+      }
+      renderCreateModal();
+    };
+
+    window.updateOption = function(qi, oi, value) {
+      surveyForm.questions[qi].options[oi] = value;
+    };
+
+    window.addOption = function(qi) {
+      surveyForm.questions[qi].options.push("");
+      renderCreateModal();
+    };
+
+    window.removeOption = function(qi, oi) {
+      surveyForm.questions[qi].options.splice(oi, 1);
+      renderCreateModal();
+    };
+
+    window.closeCreateModal = function() {
+      surveyForm = null;
+      closeModal();
+    };
+
+    window.launchSurvey = async function() {
+      // Validate
+      for (let i = 0; i < surveyForm.questions.length; i++) {
+        const q = surveyForm.questions[i];
+        if (!q.text.trim()) { alert(`Question ${i + 1} needs text.`); return; }
+        if (q.type === "choice") {
+          const opts = q.options.map(o => o.trim()).filter(Boolean);
+          if (opts.length < 2) { alert(`Question ${i + 1} needs at least 2 options.`); return; }
+          q.options = opts;
+        }
+      }
+
+      const btn = modalEl?.querySelector(".modal-actions .btn-primary");
+      if (btn) { btn.disabled = true; btn.textContent = "Launching…"; }
+
+      const surveyId = uid();
+      const now = nowIso();
+      const title = surveyForm.title;
+      const description = surveyForm.description;
+      const anonymous = surveyForm.anonymous ? 1 : 0;
+      const questions = surveyForm.questions.map((q, i) => ({
+        id: uid(), survey_id: surveyId, text: q.text.trim(), type: q.type,
+        options: q.type === "choice" ? q.options : [], position: i,
+      }));
+
+      try {
+        await db(
+          `INSERT INTO surveys (id, title, description, status, anonymous, created_by, created_at) VALUES (?, ?, ?, 'open', ?, ?, ?)`,
+          [surveyId, title, description, anonymous, ME.id, now]
+        );
+        await Promise.all(questions.map(q => db(
+          `INSERT INTO questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)`,
+          [q.id, q.survey_id, q.text, q.type, JSON.stringify(q.options), q.position]
+        )));
+
+        // Update local state and render immediately — no reload.
+        surveys = [{ id: surveyId, title, description, status: "open", anonymous, created_by: ME.id, created_at: now, closed_at: null }, ...surveys];
+        currentQuestionsCache.set(surveyId, questions);
+        questionCounts.set(surveyId, questions.length);
+        responseCounts.set(surveyId, 0);
+        listTab = "active";
+
+        closeCreateModal();
+        render();
+
+        Promise.all([
+          notify(`New survey: ${title}`, `${ME.name} created a new survey.`),
+          logActivity("survey_created", `${ME.name} created a new survey: "${title}"`, surveyId),
+        ]).catch(() => {});
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = "Launch Survey"; }
+      }
+    };
+
+    // ── Rendering ────────────────────────────────────────────────────────────
+    function render() {
+      const app = document.getElementById("app");
+      if (view === "take" && currentSurvey) {
+        app.innerHTML = renderTakeView();
+      } else if (view === "results" && currentSurvey) {
+        app.innerHTML = renderResultsView();
+      } else {
+        app.innerHTML = renderListView();
+      }
+    }
+
+    function renderListView() {
+      const active = surveys.filter(s => isSurveyOpen(s));
+      const closed = surveys.filter(s => !isSurveyOpen(s));
+      const list = listTab === "active" ? active : closed;
+
+      const createBtn = ME && isAdult(ME)
+        ? `<button class="btn btn-primary btn-sm" onclick="openCreateSurvey()">+ Create Survey</button>`
+        : "";
+
+      const cards = list.length === 0 ? `
+        <div class="empty">
+          <div class="icon">📋</div>
+          <h3>${listTab === "active" ? "No active surveys" : "No closed surveys"}</h3>
+          <p>${listTab === "active" ? "Create a survey to start collecting responses." : "Closed surveys with results will appear here."}</p>
+        </div>
+      ` : list.map(s => surveyCardHtml(s)).join("");
+
+      return `
+        <div class="page-header">
+          <h1>📋 Surveys</h1>
+          ${createBtn}
+        </div>
+        <div class="tabs">
+          <button class="tab ${listTab === "active" ? "active" : ""}" onclick="switchTab('active')">Active (${active.length})</button>
+          <button class="tab ${listTab === "closed" ? "active" : ""}" onclick="switchTab('closed')">Closed (${closed.length})</button>
+        </div>
+        ${cards}
+      `;
+    }
+
+    function surveyCardHtml(s) {
+      const qCount = questionCounts.get(s.id) ?? 0;
+      const rCount = responseCounts.get(s.id) ?? 0;
+      const total = members.length;
+      const responded = myResponseIds.has(s.id);
+
+      const badges = [];
+      if (isSurveyOpen(s)) badges.push(`<span class="badge badge-open">Open</span>`);
+      else badges.push(`<span class="badge badge-closed">Closed</span>`);
+      if (s.anonymous) badges.push(`<span class="badge badge-anon">Anonymous</span>`);
+      if (responded) badges.push(`<span class="badge badge-done">You responded ✓</span>`);
+
+      return `
+        <div class="survey-card" onclick="openSurvey('${s.id}')">
+          <div class="survey-card-inner">
+            <div class="survey-title">${esc(s.title)}</div>
+            ${s.description ? `<div class="survey-desc">${esc(s.description)}</div>` : ""}
+            <div class="survey-meta">
+              ${badges.join("")}
+              <span class="badge badge-closed">${qCount} question${qCount === 1 ? "" : "s"}</span>
+              <span class="badge badge-closed">${rCount} of ${total} responded</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTakeView() {
+      const q = currentQuestions[currentStep];
+      const total = currentQuestions.length;
+      const pct = Math.round(((currentStep + 1) / total) * 100);
+      const answer = answers[q.id];
+      const valid = isAnswerValid(q, answer);
+      const isLast = currentStep === total - 1;
+
+      return `
+        <div class="take-header">
+          <button class="back-btn" onclick="prevQuestion()" title="Back">←</button>
+          <div style="flex:1">
+            <div class="survey-title" style="margin-bottom:0">${esc(currentSurvey.title)}</div>
+          </div>
+        </div>
+        <div class="q-progress-label">Question ${currentStep + 1} of ${total}</div>
+        <div class="q-progress"><div class="q-progress-fill" style="width:${pct}%"></div></div>
+        <div class="question-text">${esc(q.text)}</div>
+        ${answerInputHtml(q, answer)}
+        <div class="take-nav">
+          <button class="btn btn-ghost" onclick="prevQuestion()">${currentStep === 0 ? "Cancel" : "Back"}</button>
+          <button class="btn btn-primary" onclick="nextQuestion()" ${valid ? "" : "disabled"}>${isLast ? "Submit" : "Next"}</button>
+        </div>
+      `;
+    }
+
+    function answerInputHtml(q, answer) {
+      switch (q.type) {
+        case "yesno":
+          return `
+            <div class="answer-row">
+              <button class="answer-btn ${answer === "yes" ? "selected" : ""}" onclick="selectAnswer('${q.id}','yes')">Yes</button>
+              <button class="answer-btn ${answer === "no" ? "selected" : ""}" onclick="selectAnswer('${q.id}','no')">No</button>
+            </div>
+          `;
+        case "rating":
+          return `
+            <div class="answer-row">
+              ${["1","2","3","4","5"].map(v => `
+                <button class="answer-btn ${answer === v ? "selected" : ""}" onclick="selectAnswer('${q.id}','${v}')">${v}</button>
+              `).join("")}
+            </div>
+          `;
+        case "choice":
+          return q.options.map(opt => `
+            <button class="answer-btn ${answer === opt ? "selected" : ""}" onclick="selectAnswer('${q.id}', ${esc(JSON.stringify(opt))})">${esc(opt)}</button>
+          `).join("");
+        case "text":
+          return `<textarea class="answer-textarea" placeholder="Type your answer…" oninput="setTextAnswerLive('${q.id}', this)">${esc(answer ?? "")}</textarea>`;
+        default:
+          return "";
+      }
+    }
+
+    // Text answers need live validation of the Submit/Next button without full re-render.
+    window.setTextAnswerLive = function(questionId, el) {
+      answers[questionId] = el.value;
+      const valid = isAnswerValid(currentQuestions[currentStep], answers[questionId]);
+      const btn = document.querySelector(".take-nav .btn-primary");
+      if (btn) btn.disabled = !valid;
+    };
+
+    function renderResultsView() {
+      const survey = currentSurvey;
+      const rCount = responseCounts.get(survey.id) ?? 0;
+      const total = members.length;
+      const closed = !isSurveyOpen(survey);
+      const manage = canManage(survey, ME);
+
+      const closeBtn = (!closed && manage)
+        ? `<button class="btn btn-danger btn-sm" onclick="closeSurvey('${survey.id}')">Close Survey</button>`
+        : "";
+
+      if (!closed) {
+        return `
+          <div class="take-header">
+            <button class="back-btn" onclick="backToList()" title="Back">←</button>
+            <div style="flex:1">
+              <div class="survey-title" style="margin-bottom:0">${esc(survey.title)}</div>
+            </div>
+            ${closeBtn}
+          </div>
+          <div class="card waiting-card">
+            <div class="icon">✅</div>
+            <h3>Thanks for responding!</h3>
+            <p>Results will be shown once the survey closes.<br>${rCount} of ${total} members have responded so far.</p>
+          </div>
+        `;
+      }
+
+      const blocks = currentQuestions.map(q => resultBlockHtml(q, survey)).join("");
+
+      return `
+        <div class="take-header">
+          <button class="back-btn" onclick="backToList()" title="Back">←</button>
+          <div style="flex:1">
+            <div class="survey-title" style="margin-bottom:0">${esc(survey.title)}</div>
+          </div>
+          ${closeBtn}
+        </div>
+        <div class="response-summary">${rCount} of ${total} members responded${survey.anonymous ? " · anonymous" : ""}</div>
+        ${blocks}
+      `;
+    }
+
+    function resultBlockHtml(q, survey) {
+      let body = "";
+      switch (q.type) {
+        case "choice": {
+          const results = choiceResults(q.id, q.options, currentResponses);
+          body = q.options.map(opt => {
+            const { count, pct } = results.get(opt);
+            return `
+              <div class="result-row">
+                <div class="result-row-label"><span class="opt">${esc(opt)}</span><span class="stat">${count} (${pct}%)</span></div>
+                <div class="result-bar"><div class="result-bar-fill" style="width:${pct}%"></div></div>
+              </div>
+            `;
+          }).join("");
+          break;
+        }
+        case "rating": {
+          const avg = ratingAverage(q.id, currentResponses);
+          const dist = ratingDistribution(q.id, currentResponses);
+          const total = [...dist.values()].reduce((a, b) => a + b, 0);
+          body = `
+            <div class="result-avg">${avg.toFixed(1)} <span>/ 5 average</span></div>
+            ${[...dist.entries()].map(([val, count]) => {
+              const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+              return `
+                <div class="result-row">
+                  <div class="result-row-label"><span class="opt">${val} ★</span><span class="stat">${count} (${pct}%)</span></div>
+                  <div class="result-bar"><div class="result-bar-fill" style="width:${pct}%"></div></div>
+                </div>
+              `;
+            }).join("")}
+          `;
+          break;
+        }
+        case "yesno": {
+          const { yes, no, yesPct, noPct } = yesNoSplit(q.id, currentResponses);
+          body = `
+            <div class="result-row">
+              <div class="result-row-label"><span class="opt">Yes</span><span class="stat">${yes} (${yesPct}%)</span></div>
+              <div class="result-bar"><div class="result-bar-fill" style="width:${yesPct}%"></div></div>
+            </div>
+            <div class="result-row">
+              <div class="result-row-label"><span class="opt">No</span><span class="stat">${no} (${noPct}%)</span></div>
+              <div class="result-bar"><div class="result-bar-fill" style="width:${noPct}%"></div></div>
+            </div>
+          `;
+          break;
+        }
+        case "text": {
+          const responses = currentResponses.filter(r => r.question_id === q.id);
+          if (responses.length === 0) {
+            body = `<p style="color:var(--muted);font-size:0.85rem">No responses yet.</p>`;
+          } else {
+            body = responses.map(r => {
+              const name = survey.anonymous ? "Anonymous" : memberName(r.member_id);
+              const avatarHtml = survey.anonymous
+                ? `<div class="avatar-sm" style="background:var(--muted)">?</div>`
+                : `<div class="avatar-sm" style="background:${memberColor(r.member_id)}">${initial(name)}</div>`;
+              return `
+                <div class="text-response">
+                  ${avatarHtml}
+                  <div>
+                    <div class="who">${esc(name)}</div>
+                    <div>${esc(r.answer)}</div>
+                  </div>
+                </div>
+              `;
+            }).join("");
+          }
+          break;
+        }
+      }
+      return `
+        <div class="result-block card card-body">
+          <div class="result-question">${esc(q.text)}</div>
+          ${body}
+        </div>
+      `;
+    }
+
+    // ── Deep linking ─────────────────────────────────────────────────────────
+    function handleDeepLink() {
+      const params = new URLSearchParams(window.location.search);
+      const surveyId = params.get("surveyId");
+      if (surveyId && surveys.some(s => s.id === surveyId)) {
+        openSurvey(surveyId);
+      }
+    }
+
+    // ── Init ─────────────────────────────────────────────────────────────────
+    (async () => {
+      await Promise.all([loadMembers(), loadSurveys()]);
+      handleDeepLink();
+      render();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "chickadee-app-surveys",
+  "version": "1.0.0",
+  "description": "Surveys app for Chickadee Bandit — multi-question surveys with results revealed on close",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "node dev.mjs"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

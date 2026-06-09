@@ -1,0 +1,45 @@
+{
+  "id": "surveys",
+  "name": "Surveys",
+  "version": "1.0.0",
+  "description": "Multi-question surveys for household decisions, trip planning, and org feedback. Adults create; everyone responds. Results revealed when the survey closes.",
+  "entrypoint": "index.html",
+  "runtime": "static",
+  "category": "communication",
+  "tags": [
+    "surveys",
+    "feedback",
+    "decisions",
+    "communication",
+    "everyone"
+  ],
+  "data_access": {
+    "reads": [
+      "family.members"
+    ],
+    "writes": []
+  },
+  "permissions": {
+    "default_audience": "everyone",
+    "requires_approval": false
+  },
+  "storage": "db",
+  "publishes": [
+    "survey.created",
+    "survey.closed"
+  ],
+  "alert_on": [
+    "survey.created",
+    "survey.closed"
+  ],
+  "nav": { "label": "Surveys" },
+  "resource_limits": {
+    "max_db_bytes": 104857600
+  },
+  "icon": "📋",
+  "ai_access": {
+    "allowed": true,
+    "mode": "read",
+    "db_exports": ["open_surveys", "closed_surveys"]
+  }
+}
