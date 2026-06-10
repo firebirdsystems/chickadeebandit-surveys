@@ -567,17 +567,20 @@
     async function loadSurveys() {
       if (!DB) { buildDemoData(); return; }
 
-      const [surveysRes, qCountRes, rCountRes, myRes] = await Promise.all([
-        db("SELECT * FROM surveys ORDER BY created_at DESC"),
-        db("SELECT survey_id, COUNT(*) as cnt FROM questions GROUP BY survey_id"),
-        db("SELECT survey_id, COUNT(DISTINCT member_id) as cnt FROM responses GROUP BY survey_id"),
-        ME ? db("SELECT DISTINCT survey_id FROM responses WHERE member_id = ?", [ME.id]) : Promise.resolve({ rows: [] }),
-      ]);
+      // Single round-trip: per-survey aggregates as correlated subqueries.
+      const res = await db(`
+        SELECT s.*,
+          (SELECT COUNT(*) FROM questions q WHERE q.survey_id = s.id) AS question_count,
+          (SELECT COUNT(DISTINCT member_id) FROM responses r WHERE r.survey_id = s.id) AS response_count,
+          EXISTS(SELECT 1 FROM responses r2 WHERE r2.survey_id = s.id AND r2.member_id = ?) AS i_responded
+        FROM surveys s ORDER BY s.created_at DESC
+      `, [ME?.id ?? ""]);
 
-      surveys = surveysRes.rows ?? [];
-      questionCounts = new Map((qCountRes.rows ?? []).map(r => [r.survey_id, Number(r.cnt)]));
-      responseCounts = new Map((rCountRes.rows ?? []).map(r => [r.survey_id, Number(r.cnt)]));
-      myResponseIds = new Set((myRes.rows ?? []).map(r => r.survey_id));
+      const rows = res.rows ?? [];
+      surveys = rows.map(({ question_count, response_count, i_responded, ...s }) => s);
+      questionCounts = new Map(rows.map(r => [r.id, Number(r.question_count)]));
+      responseCounts = new Map(rows.map(r => [r.id, Number(r.response_count)]));
+      myResponseIds = new Set(rows.filter(r => r.i_responded).map(r => r.id));
     }
 
     async function loadSurveyDetail(surveyId) {
@@ -718,10 +721,12 @@
       }));
 
       try {
-        await Promise.all(rows.map(r => db(
-          `INSERT INTO responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
-          [r.id, r.survey_id, r.question_id, r.member_id, r.answer, r.created_at]
-        )));
+        const placeholders = rows.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
+        const params = rows.flatMap(r => [r.id, r.survey_id, r.question_id, r.member_id, r.answer, r.created_at]);
+        await db(
+          `INSERT INTO responses (id, survey_id, question_id, member_id, answer, created_at) VALUES ${placeholders}`,
+          params
+        );
 
         // Update local state and render immediately — no reload.
         currentResponsesCache.delete(survey.id); // results will reload fresh once closed
@@ -945,10 +950,12 @@
           `INSERT INTO surveys (id, title, description, status, anonymous, created_by, created_at) VALUES (?, ?, ?, 'open', ?, ?, ?)`,
           [surveyId, title, description, anonymous, ME.id, now]
         );
-        await Promise.all(questions.map(q => db(
-          `INSERT INTO questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)`,
-          [q.id, q.survey_id, q.text, q.type, JSON.stringify(q.options), q.position]
-        )));
+        const placeholders = questions.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
+        const params = questions.flatMap(q => [q.id, q.survey_id, q.text, q.type, JSON.stringify(q.options), q.position]);
+        await db(
+          `INSERT INTO questions (id, survey_id, text, type, options, position) VALUES ${placeholders}`,
+          params
+        );
 
         // Update local state and render immediately — no reload.
         surveys = [{ id: surveyId, title, description, status: "open", anonymous, created_by: ME.id, created_at: now, closed_at: null }, ...surveys];
