@@ -5,7 +5,7 @@
   "description": "Multi-question surveys for household decisions, trip planning, and org feedback. Adults create; everyone responds. Results revealed when the survey closes.",
   "entrypoint": "index.html",
   "runtime": "static",
-  "category": "communication",
+  "category": "general",
   "tags": [
     "surveys",
     "feedback",
