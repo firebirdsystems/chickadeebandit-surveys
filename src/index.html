@@ -570,10 +570,10 @@
       // Single round-trip: per-survey aggregates as correlated subqueries.
       const res = await db(`
         SELECT s.*,
-          (SELECT COUNT(*) FROM questions q WHERE q.survey_id = s.id) AS question_count,
-          (SELECT COUNT(DISTINCT member_id) FROM responses r WHERE r.survey_id = s.id) AS response_count,
-          EXISTS(SELECT 1 FROM responses r2 WHERE r2.survey_id = s.id AND r2.member_id = ?) AS i_responded
-        FROM surveys s ORDER BY s.created_at DESC
+          (SELECT COUNT(*) FROM app_surveys__questions q WHERE q.survey_id = s.id) AS question_count,
+          (SELECT COUNT(DISTINCT member_id) FROM app_surveys__responses r WHERE r.survey_id = s.id) AS response_count,
+          EXISTS(SELECT 1 FROM app_surveys__responses r2 WHERE r2.survey_id = s.id AND r2.member_id = ?) AS i_responded
+        FROM app_surveys__surveys s ORDER BY s.created_at DESC
       `, [ME?.id ?? ""]);
 
       const rows = res.rows ?? [];
@@ -587,7 +587,7 @@
       if (currentQuestionsCache.has(surveyId)) {
         currentQuestions = currentQuestionsCache.get(surveyId);
       } else {
-        const res = await db("SELECT * FROM questions WHERE survey_id = ? ORDER BY position", [surveyId]);
+        const res = await db("SELECT * FROM app_surveys__questions WHERE survey_id = ? ORDER BY position", [surveyId]);
         currentQuestions = (res.rows ?? []).map(q => ({ ...q, options: JSON.parse(q.options || "[]") }));
         currentQuestionsCache.set(surveyId, currentQuestions);
       }
@@ -597,7 +597,7 @@
         if (currentResponsesCache.has(surveyId)) {
           currentResponses = currentResponsesCache.get(surveyId);
         } else {
-          const res = await db("SELECT * FROM responses WHERE survey_id = ?", [surveyId]);
+          const res = await db("SELECT * FROM app_surveys__responses WHERE survey_id = ?", [surveyId]);
           currentResponses = res.rows ?? [];
           currentResponsesCache.set(surveyId, currentResponses);
         }
@@ -724,7 +724,7 @@
         const placeholders = rows.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
         const params = rows.flatMap(r => [r.id, r.survey_id, r.question_id, r.member_id, r.answer, r.created_at]);
         await db(
-          `INSERT INTO responses (id, survey_id, question_id, member_id, answer, created_at) VALUES ${placeholders}`,
+          `INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES ${placeholders}`,
           params
         );
 
@@ -752,7 +752,7 @@
       if (!survey) return;
       const now = nowIso();
 
-      await db(`UPDATE surveys SET status = 'closed', closed_at = ? WHERE id = ?`, [now, surveyId]);
+      await db(`UPDATE app_surveys__surveys SET status = 'closed', closed_at = ? WHERE id = ?`, [now, surveyId]);
 
       survey.status = "closed";
       survey.closed_at = now;
@@ -947,13 +947,13 @@
 
       try {
         await db(
-          `INSERT INTO surveys (id, title, description, status, anonymous, created_by, created_at) VALUES (?, ?, ?, 'open', ?, ?, ?)`,
+          `INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at) VALUES (?, ?, ?, 'open', ?, ?, ?)`,
           [surveyId, title, description, anonymous, ME.id, now]
         );
         const placeholders = questions.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
         const params = questions.flatMap(q => [q.id, q.survey_id, q.text, q.type, JSON.stringify(q.options), q.position]);
         await db(
-          `INSERT INTO questions (id, survey_id, text, type, options, position) VALUES ${placeholders}`,
+          `INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES ${placeholders}`,
           params
         );
 

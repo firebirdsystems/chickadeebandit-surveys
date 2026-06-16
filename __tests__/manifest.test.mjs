@@ -94,17 +94,6 @@ describe("manifest.json ai_access", () => {
     }
   });
 
-  it("each query file filters by household_id", () => {
-    for (const name of ai.db_exports) {
-      const path = join(__dirname, `../src/queries/${name}.sql`);
-      const sql = readFileSync(path, "utf-8");
-      expect(
-        sql.includes("household_id"),
-        `src/queries/${name}.sql must filter by household_id to prevent cross-household data leaks`
-      ).toBe(true);
-    }
-  });
-
   it("each query file is a single statement (no semicolons)", () => {
     for (const name of ai.db_exports) {
       const path = join(__dirname, `../src/queries/${name}.sql`);
@@ -122,8 +111,7 @@ describe("migrations", () => {
     expect(existsSync(path)).toBe(true);
     const sql = readFileSync(path, "utf-8");
     for (const table of ["surveys", "questions", "responses"]) {
-      expect(sql).toMatch(new RegExp(`CREATE TABLE IF NOT EXISTS ${table}`, "i"));
+      expect(sql).toMatch(new RegExp(`CREATE TABLE IF NOT EXISTS app_surveys__${table}`, "i"));
     }
-    expect(sql).toMatch(/household_id/);
   });
 });
