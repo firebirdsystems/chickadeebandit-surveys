@@ -612,7 +612,7 @@
     function memberName(id) { return memberMap.get(id)?.name ?? "Unknown"; }
 
     async function notify(title, body) {
-      await fetch("/api/notifications/send", {
+      await fetch(window.__NOTIFY_URL ?? "/api/notifications/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, body, url: `/run/${APP_ID}` }),
@@ -620,7 +620,7 @@
     }
 
     async function logActivity(type, description, surveyId) {
-      await fetch("/api/activity", {
+      await fetch(window.__ACTIVITY_URL ?? "/api/activity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
