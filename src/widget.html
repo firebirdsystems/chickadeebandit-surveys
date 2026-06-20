@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surveys Widget</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--hub-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      font-size: 13px;
+      background: #fff;
+      color: #111827;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px 8px;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+    .header-count { font-size: 11px; color: #6b7280; }
+
+    .survey-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .survey-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 7px 14px;
+      border-bottom: 1px solid #f3f4f6;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      transition: background .1s;
+    }
+    .survey-row:last-child { border-bottom: none; }
+    .survey-row:hover { background: #f9fafb; }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .status-dot.done    { background: #059669; }
+    .status-dot.pending { background: #f59e0b; }
+
+    .survey-main { flex: 1; min-width: 0; }
+    .survey-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.35;
+    }
+    .survey-meta {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 1px;
+    }
+
+    .done-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: #059669;
+      background: #d1fae5;
+      padding: 1px 5px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    .respond-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: #d97706;
+      background: #fef3c7;
+      padding: 1px 5px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .footer {
+      padding: 7px 14px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: #f9fafb;
+    }
+    .new-link {
+      font-size: 11px;
+      font-weight: 600;
+      background: #111827;
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    .open-link {
+      font-size: 11px;
+      font-weight: 600;
+      color: #111827;
+      text-decoration: none;
+    }
+    .open-link:hover { text-decoration: underline; }
+
+    .empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      font-size: 12px;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+<script type="module">
+import { esc, formatRelativeDate } from "/hub-sdk.js";
+
+const DB         = window.__DB_URL         ?? "";
+const APP_ID     = window.__APP_ID         ?? "surveys";
+const HUB_MEMBER = window.__CURRENT_MEMBER ?? null;
+
+async function dbq(sql, params = []) {
+  if (!DB) return { rows: [] };
+  const res = await fetch(DB, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sql, params }),
+  });
+  return res.json();
+}
+
+async function load() {
+  const memberId = HUB_MEMBER?.id ?? null;
+
+  const { rows } = await dbq(
+    `SELECT s.id, s.title, s.created_at,
+            COUNT(DISTINCT q.id) AS question_count,
+            IFNULL(resp.responded, 0) AS responded
+     FROM app_surveys__surveys s
+     LEFT JOIN app_surveys__questions q ON q.survey_id = s.id
+     LEFT JOIN (
+       SELECT survey_id, 1 AS responded
+       FROM app_surveys__responses
+       WHERE member_id = ?
+       GROUP BY survey_id
+     ) resp ON resp.survey_id = s.id
+     WHERE s.status = 'open'
+     GROUP BY s.id
+     ORDER BY responded ASC, s.created_at DESC
+     LIMIT 10`,
+    [memberId ?? ""]
+  );
+
+  render(rows ?? []);
+}
+
+function render(surveys) {
+  const pending = surveys.filter(s => !s.responded);
+
+  const header = `
+    <div class="header">
+      <span class="header-count">
+        ${surveys.length === 0
+          ? "No open surveys"
+          : pending.length > 0
+            ? `${pending.length} need${pending.length === 1 ? "s" : ""} your response`
+            : `${surveys.length} open`}
+      </span>
+    </div>`;
+
+  let rows;
+  if (surveys.length === 0) {
+    rows = `<div class="empty">
+      <span>No open surveys</span>
+      <a href="/run/${APP_ID}" style="color:#111827;font-weight:600;font-size:11px">Create one →</a>
+    </div>`;
+  } else {
+    rows = `<div class="survey-list">
+      ${surveys.map(s => {
+        const qs = s.question_count;
+        return `
+          <a class="survey-row" href="/run/${APP_ID}">
+            <div class="status-dot ${s.responded ? "done" : "pending"}"></div>
+            <div class="survey-main">
+              <div class="survey-title">${esc(s.title)}</div>
+              <div class="survey-meta">${qs} question${qs !== 1 ? "s" : ""} · ${formatRelativeDate(s.created_at)}</div>
+            </div>
+            ${s.responded
+              ? `<span class="done-badge">✓ Done</span>`
+              : `<span class="respond-badge">Respond →</span>`}
+          </a>`;
+      }).join("")}
+    </div>`;
+  }
+
+  const footer = `
+    <div class="footer">
+      <a class="open-link" href="/run/${APP_ID}">All surveys →</a>
+      <a class="new-link"  href="/run/${APP_ID}">+ New</a>
+    </div>`;
+
+  document.body.innerHTML = header + rows + footer;
+}
+
+load().catch(() => {
+  document.body.innerHTML = `
+    <div class="empty">
+      <a href="/run/${APP_ID}" style="color:#111827;font-weight:600">Open Surveys →</a>
+    </div>`;
+});
+</script>
+</body>
+</html>
