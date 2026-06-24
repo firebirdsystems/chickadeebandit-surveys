@@ -24,13 +24,23 @@ CREATE TABLE IF NOT EXISTS app_surveys__responses (
   id           TEXT NOT NULL,
   survey_id    TEXT NOT NULL,
   question_id  TEXT NOT NULL,
-  member_id    TEXT NOT NULL,
+  member_id    TEXT,
   answer       TEXT NOT NULL,
   created_at   TEXT NOT NULL,
-  PRIMARY KEY (id),
-  UNIQUE (survey_id, question_id, member_id)
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS app_surveys__response_receipts (
+  survey_id   TEXT NOT NULL,
+  member_id   TEXT NOT NULL,
+  created_at  TEXT NOT NULL,
+  PRIMARY KEY (survey_id, member_id)
 );
 
 CREATE INDEX IF NOT EXISTS questions_survey ON app_surveys__questions(survey_id);
 CREATE INDEX IF NOT EXISTS responses_survey ON app_surveys__responses(survey_id);
 CREATE INDEX IF NOT EXISTS responses_survey_member ON app_surveys__responses(survey_id, member_id);
+CREATE UNIQUE INDEX IF NOT EXISTS responses_member_unique
+  ON app_surveys__responses(survey_id, question_id, member_id)
+  WHERE member_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS receipts_survey ON app_surveys__response_receipts(survey_id);

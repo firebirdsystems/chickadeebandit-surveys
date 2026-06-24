@@ -30,7 +30,7 @@ export function responseCount(surveyId, responses) {
 
 export function canManage(survey, me) {
   if (!me) return false;
-  return survey.created_by === me.id || isAdult(me);
+  return isAdult(me);
 }
 
 export function choiceResults(questionId, options, responses) {

@@ -157,7 +157,7 @@ async function load() {
      LEFT JOIN app_surveys__questions q ON q.survey_id = s.id
      LEFT JOIN (
        SELECT survey_id, 1 AS responded
-       FROM app_surveys__responses
+       FROM app_surveys__response_receipts
        WHERE member_id = ?
        GROUP BY survey_id
      ) resp ON resp.survey_id = s.id

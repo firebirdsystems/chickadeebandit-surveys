@@ -450,9 +450,11 @@
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
-    const CONTEXT = window.__CONTEXT_URL ?? "";
-    const DB      = window.__DB_URL ?? "";
-    const APP_ID  = window.__APP_ID ?? "surveys";
+    const CONTEXT         = window.__CONTEXT_URL ?? "";
+    const DB              = window.__DB_URL ?? "";
+    const APP_ID          = window.__APP_ID ?? "surveys";
+    const SUBMIT_RESPONSE = window.__SUBMIT_RESPONSE_URL ?? "";
+    const RESPONSE_RESULTS = window.__RESPONSE_RESULTS_URL ?? "";
     let   ME      = window.__CURRENT_MEMBER ?? null;
 
     // ── State ────────────────────────────────────────────────────────────────
@@ -568,11 +570,13 @@
       if (!DB) { buildDemoData(); return; }
 
       // Single round-trip: per-survey aggregates as correlated subqueries.
+      // i_responded checks the receipt table so it works for both anonymous and
+      // non-anonymous surveys (anonymous responses omit member_id in the response table).
       const res = await db(`
         SELECT s.*,
           (SELECT COUNT(*) FROM app_surveys__questions q WHERE q.survey_id = s.id) AS question_count,
-          (SELECT COUNT(DISTINCT member_id) FROM app_surveys__responses r WHERE r.survey_id = s.id) AS response_count,
-          EXISTS(SELECT 1 FROM app_surveys__responses r2 WHERE r2.survey_id = s.id AND r2.member_id = ?) AS i_responded
+          (SELECT COUNT(DISTINCT member_id) FROM app_surveys__response_receipts rr WHERE rr.survey_id = s.id) AS response_count,
+          EXISTS(SELECT 1 FROM app_surveys__response_receipts rr2 WHERE rr2.survey_id = s.id AND rr2.member_id = ?) AS i_responded
         FROM app_surveys__surveys s ORDER BY s.created_at DESC
       `, [ME?.id ?? ""]);
 
@@ -597,8 +601,10 @@
         if (currentResponsesCache.has(surveyId)) {
           currentResponses = currentResponsesCache.get(surveyId);
         } else {
-          const res = await db("SELECT * FROM app_surveys__responses WHERE survey_id = ?", [surveyId]);
-          currentResponses = res.rows ?? [];
+          const res = await fetch(`${RESPONSE_RESULTS}?session_id=${encodeURIComponent(surveyId)}`);
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(body.error ?? "Unable to load survey results");
+          currentResponses = body.rows ?? [];
           currentResponsesCache.set(surveyId, currentResponses);
         }
       } else {
@@ -616,6 +622,14 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, body, url: `/run/${APP_ID}` }),
+      }).catch(() => {});
+    }
+
+    async function publishEvent(type, payload) {
+      await fetch(window.__EVENTS_URL ?? `/run/${APP_ID}/api/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, payload }),
       }).catch(() => {});
     }
 
@@ -710,23 +724,19 @@
     async function submitSurvey() {
       if (!allAnswered(currentQuestions, answers)) return;
       const survey = currentSurvey;
-      const now = nowIso();
 
       const btn = document.querySelector(".take-nav .btn-primary");
       if (btn) { btn.disabled = true; btn.textContent = "Submitting…"; }
 
-      const rows = currentQuestions.map(q => ({
-        id: uid(), survey_id: survey.id, question_id: q.id,
-        member_id: ME.id, answer: answers[q.id], created_at: now,
-      }));
+      const responses = currentQuestions.map(q => ({ question_id: q.id, answer: answers[q.id] }));
 
       try {
-        const placeholders = rows.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
-        const params = rows.flatMap(r => [r.id, r.survey_id, r.question_id, r.member_id, r.answer, r.created_at]);
-        await db(
-          `INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES ${placeholders}`,
-          params
-        );
+        const res = await fetch(SUBMIT_RESPONSE, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: survey.id, responses }),
+        });
+        if (!res.ok) throw new Error(await res.text());
 
         // Update local state and render immediately — no reload.
         currentResponsesCache.delete(survey.id); // results will reload fresh once closed
@@ -766,6 +776,7 @@
       Promise.all([
         notify(`Survey closed`, `Results for "${survey.title}" are ready.`),
         logActivity("survey_closed", `${ME?.name ?? "Someone"} closed the survey "${survey.title}"`, surveyId),
+        publishEvent("survey.closed", { surveyId, title: survey.title }),
       ]).catch(() => {});
     };
 
@@ -970,6 +981,7 @@
         Promise.all([
           notify(`New survey: ${title}`, `${ME.name} created a new survey.`),
           logActivity("survey_created", `${ME.name} created a new survey: "${title}"`, surveyId),
+          publishEvent("survey.created", { surveyId, title }),
         ]).catch(() => {});
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Launch Survey"; }

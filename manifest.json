@@ -1,7 +1,7 @@
 {
   "id": "surveys",
   "name": "Surveys",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Multi-question surveys for household decisions, trip planning, and org feedback. Adults create; everyone responds. Results revealed when the survey closes.",
   "entrypoint": "index.html",
   "runtime": "static",
@@ -24,10 +24,55 @@
     "requires_approval": false
   },
   "storage": "db",
+  "row_policies": {
+    "surveys": {
+      "kind": "adult_writable"
+    },
+    "questions": {
+      "kind": "adult_writable"
+    },
+    "responses": {
+      "kind": "endpoint_only",
+      "read": "none"
+    },
+    "response_receipts": {
+      "kind": "owner_only",
+      "member_column": "member_id",
+      "adults_bypass": false,
+      "member_can_update": false,
+      "endpoint_writes_only": true
+    }
+  },
+  "anonymous_responses": {
+    "receipt_table": "response_receipts",
+    "session_column": "survey_id",
+    "member_column": "member_id",
+    "created_at_column": "created_at",
+    "response_table": "responses",
+    "response_session_column": "survey_id",
+    "response_question_column": "question_id",
+    "response_member_column": "member_id",
+    "response_answer_column": "answer",
+    "response_id_column": "id",
+    "response_created_at_column": "created_at",
+    "session_table": "surveys",
+    "session_id_column": "id",
+    "session_status_column": "status",
+    "session_open_value": "open",
+    "session_anonymous_column": "anonymous",
+    "result_visible_values": ["closed"],
+    "question_table": "questions",
+    "question_session_column": "survey_id",
+    "question_id_column": "id"
+  },
   "publishes": [
     "survey.created",
     "survey.closed"
   ],
+  "publish_acls": {
+    "survey.created": { "require_role": "adult" },
+    "survey.closed":  { "require_role": "adult" }
+  },
   "alert_on": [
     "survey.created",
     "survey.closed"

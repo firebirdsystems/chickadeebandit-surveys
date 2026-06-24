@@ -103,6 +103,104 @@ describe("manifest.json ai_access", () => {
   });
 });
 
+// ── row_policies ─────────────────────────────────────────────────────────────
+
+describe("manifest.json row_policies", () => {
+  const rp = manifest.row_policies ?? {};
+
+  it("surveys table has adult_writable policy", () => {
+    expect(rp.surveys?.kind).toBe("adult_writable");
+  });
+
+  it("questions table has adult_writable policy", () => {
+    expect(rp.questions?.kind).toBe("adult_writable");
+  });
+
+  it("response_receipts has owner_only policy", () => {
+    expect(rp.response_receipts?.kind).toBe("owner_only");
+  });
+
+  it("response_receipts disables adults_bypass (anonymity guaranteed)", () => {
+    expect(rp.response_receipts?.adults_bypass).toBe(false);
+  });
+
+  it("response_receipts disables member_can_update (receipts are immutable)", () => {
+    expect(rp.response_receipts?.member_can_update).toBe(false);
+  });
+
+  it("responses are readable and writable only through the trusted results/submission endpoints", () => {
+    expect(rp.responses).toEqual({ kind: "endpoint_only", read: "none" });
+    expect(rp.response_receipts?.endpoint_writes_only).toBe(true);
+  });
+});
+
+// ── anonymous_responses ───────────────────────────────────────────────────────
+
+describe("manifest.json anonymous_responses", () => {
+  const ar = manifest.anonymous_responses ?? {};
+
+  const requiredFields = [
+    "receipt_table", "session_column", "member_column", "created_at_column",
+    "response_table", "response_session_column",
+    "response_answer_column", "response_id_column", "response_created_at_column",
+    "session_table", "session_id_column", "session_status_column", "session_open_value",
+  ];
+
+  for (const field of requiredFields) {
+    it(`has required field: ${field}`, () => {
+      expect(typeof ar[field]).toBe("string");
+      expect(ar[field].trim().length).toBeGreaterThan(0);
+    });
+  }
+
+  it("uses response_receipts as receipt_table", () => {
+    expect(ar.receipt_table).toBe("response_receipts");
+  });
+
+  it("uses responses as response_table", () => {
+    expect(ar.response_table).toBe("responses");
+  });
+
+  it("uses surveys as session_table", () => {
+    expect(ar.session_table).toBe("surveys");
+  });
+
+  it("session_open_value is 'open'", () => {
+    expect(ar.session_open_value).toBe("open");
+  });
+
+  it("declares response_member_column (hub conditionally stores member_id for non-anonymous surveys)", () => {
+    expect(ar.response_member_column).toBe("member_id");
+  });
+
+  it("declares session_anonymous_column (hub reads this to decide anonymity per session)", () => {
+    expect(ar.session_anonymous_column).toBe("anonymous");
+  });
+
+  it("releases results only after closure and validates question ownership", () => {
+    expect(ar.result_visible_values).toEqual(["closed"]);
+    expect(ar.question_table).toBe("questions");
+    expect(ar.question_session_column).toBe("survey_id");
+    expect(ar.question_id_column).toBe("id");
+  });
+
+  it("declares response_question_column for question_id", () => {
+    expect(ar.response_question_column).toBe("question_id");
+  });
+});
+
+// ── publish_acls ─────────────────────────────────────────────────────────────
+
+describe("manifest.json publish_acls", () => {
+  it("survey.created requires adult role", () => {
+    expect(manifest.publish_acls?.["survey.created"]?.require_role).toBe("adult");
+  });
+
+  it("survey.closed requires adult role", () => {
+    expect(manifest.publish_acls?.["survey.closed"]?.require_role).toBe("adult");
+  });
+});
+
 // ── migrations ───────────────────────────────────────────────────────────────
 
 describe("migrations", () => {
@@ -111,7 +209,20 @@ describe("migrations", () => {
     expect(existsSync(path)).toBe(true);
     const sql = readFileSync(path, "utf-8");
     for (const table of ["surveys", "questions", "responses"]) {
-      expect(sql).toMatch(new RegExp(`CREATE TABLE IF NOT EXISTS app_surveys__${table}`, "i"));
+      expect(sql, `missing table: app_surveys__${table}`)
+        .toMatch(new RegExp(`CREATE TABLE IF NOT EXISTS app_surveys__${table}`, "i"));
     }
+  });
+
+  it("001 migration adds response_receipts table", () => {
+    const sql = readFileSync(join(__dirname, "../migrations/001_init.sql"), "utf-8");
+    expect(sql).toMatch(/CREATE TABLE.*app_surveys__response_receipts/i);
+  });
+
+  it("001 migration creates responses with nullable member_id without destructive SQL", () => {
+    const sql = readFileSync(join(__dirname, "../migrations/001_init.sql"), "utf-8");
+    expect(sql).toMatch(/CREATE TABLE.*app_surveys__responses/i);
+    expect(sql).toMatch(/member_id\s+TEXT(?!\s+NOT NULL)/i);
+    expect(sql).not.toMatch(/DROP TABLE/i);
   });
 });

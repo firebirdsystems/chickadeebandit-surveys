@@ -48,12 +48,12 @@ describe("respondentIds / hasResponded / responseCount", () => {
 describe("canManage", () => {
   const survey = { id: "s1", created_by: "m-creator" };
 
-  it("creator can manage", () => {
-    expect(canManage(survey, { id: "m-creator", role: "child" })).toBe(true);
+  it("adults can manage any survey", () => {
+    expect(canManage(survey, adult)).toBe(true);
   });
 
-  it("adults can manage", () => {
-    expect(canManage(survey, adult)).toBe(true);
+  it("non-adult creator cannot manage (server enforces adult_writable)", () => {
+    expect(canManage(survey, { id: "m-creator", role: "child" })).toBe(false);
   });
 
   it("non-creator children cannot manage", () => {
