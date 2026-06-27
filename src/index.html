@@ -441,7 +441,7 @@
 
   <script type="module">
     import {
-      memberColor, initial, esc, isAdult, formatRelativeDate,
+      hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate,
     } from "/hub-sdk.js";
     import {
       surveyStatus, isSurveyOpen, hasResponded, responseCount, canManage,
@@ -935,10 +935,10 @@
       // Validate
       for (let i = 0; i < surveyForm.questions.length; i++) {
         const q = surveyForm.questions[i];
-        if (!q.text.trim()) { alert(`Question ${i + 1} needs text.`); return; }
+        if (!q.text.trim()) { hubAlert(`Question ${i + 1} needs text.`); return; }
         if (q.type === "choice") {
           const opts = q.options.map(o => o.trim()).filter(Boolean);
-          if (opts.length < 2) { alert(`Question ${i + 1} needs at least 2 options.`); return; }
+          if (opts.length < 2) { hubAlert(`Question ${i + 1} needs at least 2 options.`); return; }
           q.options = opts;
         }
       }
