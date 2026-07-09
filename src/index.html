@@ -569,22 +569,31 @@
     async function loadSurveys() {
       if (!DB) { buildDemoData(); return; }
 
-      // Single round-trip: per-survey aggregates as correlated subqueries.
-      // i_responded checks the receipt table so it works for both anonymous and
-      // non-anonymous surveys (anonymous responses omit member_id in the response table).
-      const res = await db(`
-        SELECT s.*,
-          (SELECT COUNT(*) FROM app_surveys__questions q WHERE q.survey_id = s.id) AS question_count,
-          (SELECT COUNT(DISTINCT member_id) FROM app_surveys__response_receipts rr WHERE rr.survey_id = s.id) AS response_count,
-          EXISTS(SELECT 1 FROM app_surveys__response_receipts rr2 WHERE rr2.survey_id = s.id AND rr2.member_id = ?) AS i_responded
-        FROM app_surveys__surveys s ORDER BY s.created_at DESC
-      `, [ME?.id ?? ""]);
-
-      const rows = res.rows ?? [];
-      surveys = rows.map(({ question_count, response_count, i_responded, ...s }) => s);
-      questionCounts = new Map(rows.map(r => [r.id, Number(r.question_count)]));
-      responseCounts = new Map(rows.map(r => [r.id, Number(r.response_count)]));
-      myResponseIds = new Set(rows.filter(r => r.i_responded).map(r => r.id));
+      // Row policies can't rewrite correlated subqueries on governed tables —
+      // load each table top-level and aggregate client-side. The receipts
+      // query is owner-filtered by policy, so counts reflect what the viewer
+      // is allowed to see (i_responded checks the receipt table so it works
+      // for both anonymous and non-anonymous surveys).
+      const [sRes, qRes, rRes] = await Promise.all([
+        db(`SELECT * FROM app_surveys__surveys ORDER BY created_at DESC`),
+        db(`SELECT survey_id FROM app_surveys__questions`),
+        db(`SELECT survey_id, member_id FROM app_surveys__response_receipts`),
+      ]);
+      surveys = sRes.rows ?? [];
+      questionCounts = new Map();
+      for (const q of qRes.rows ?? []) {
+        questionCounts.set(q.survey_id, (questionCounts.get(q.survey_id) ?? 0) + 1);
+      }
+      responseCounts = new Map();
+      const seenPerSurvey = new Map();
+      myResponseIds = new Set();
+      for (const r of rRes.rows ?? []) {
+        const seen = seenPerSurvey.get(r.survey_id) ?? new Set();
+        seen.add(r.member_id);
+        seenPerSurvey.set(r.survey_id, seen);
+        responseCounts.set(r.survey_id, seen.size);
+        if (ME && r.member_id === ME.id) myResponseIds.add(r.survey_id);
+      }
     }
 
     async function loadSurveyDetail(surveyId) {
