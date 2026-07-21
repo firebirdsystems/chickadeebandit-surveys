@@ -23,13 +23,16 @@
     "default_audience": "everyone",
     "requires_approval": false
   },
+  "contexts": ["household", "shared_space.roster"],
   "storage": "db",
   "row_policies": {
     "surveys": {
-      "kind": "adult_writable"
+      "kind": "adult_writable",
+      "steward_writes_only": true
     },
     "questions": {
-      "kind": "adult_writable"
+      "kind": "adult_writable",
+      "steward_writes_only": true
     },
     "responses": {
       "kind": "endpoint_only",

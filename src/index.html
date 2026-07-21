@@ -456,6 +456,13 @@
     const SUBMIT_RESPONSE = window.__SUBMIT_RESPONSE_URL ?? "";
     const RESPONSE_RESULTS = window.__RESPONSE_RESULTS_URL ?? "";
     let   ME      = window.__CURRENT_MEMBER ?? null;
+    const IS_ADMIN  = window.__IS_ADMIN === true;
+    const IS_ROSTER = window.__SPACE_KIND === "roster";
+    // Who may create and manage surveys. In a roster only the steward (space
+    // admin) authors surveys; everyone else just responds. Elsewhere any adult
+    // may. The hub enforces this server-side (adult_writable + steward_writes_only
+    // on `surveys`/`questions`); this only hides controls that would 403.
+    const canSteward = (m) => IS_ROSTER ? IS_ADMIN : isAdult(m);
 
     // ── State ────────────────────────────────────────────────────────────────
     let members      = [];
@@ -1014,7 +1021,7 @@
       const closed = surveys.filter(s => !isSurveyOpen(s));
       const list = listTab === "active" ? active : closed;
 
-      const createBtn = ME && isAdult(ME)
+      const createBtn = ME && canSteward(ME)
         ? `<button class="btn btn-primary btn-sm" onclick="openCreateSurvey()">+ Create Survey</button>`
         : "";
 
@@ -1133,7 +1140,7 @@
       const rCount = responseCounts.get(survey.id) ?? 0;
       const total = members.length;
       const closed = !isSurveyOpen(survey);
-      const manage = canManage(survey, ME);
+      const manage = canManage(survey, ME) && (!IS_ROSTER || IS_ADMIN);
 
       const closeBtn = (!closed && manage)
         ? `<button class="btn btn-danger btn-sm" onclick="closeSurvey('${survey.id}')">Close Survey</button>`
