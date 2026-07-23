@@ -131,6 +131,7 @@
 <body>
 <script type="module">
 import { esc, formatRelativeDate } from "/hub-sdk.js";
+import { orderSurveysForWidget } from "./logic.js";
 
 const DB         = window.__DB_URL         ?? "";
 const APP_ID     = window.__APP_ID         ?? "surveys";
@@ -172,10 +173,7 @@ async function load() {
     for (const r of receipts ?? []) responded.add(r.survey_id);
   }
 
-  const surveys = (rows ?? []).map(s => ({ ...s, responded: responded.has(s.id) ? 1 : 0 }));
-  surveys.sort((a, b) => (a.responded - b.responded) || (b.created_at < a.created_at ? -1 : 1));
-
-  render(surveys);
+  render(orderSurveysForWidget(rows ?? [], responded));
 }
 
 function render(surveys) {

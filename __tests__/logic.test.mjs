@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   surveyStatus, isSurveyOpen, respondentIds, hasResponded, responseCount,
   canManage, choiceResults, ratingAverage, ratingDistribution, yesNoSplit,
-  isAnswerValid, allAnswered,
+  isAnswerValid, allAnswered, orderSurveysForWidget,
 } from "../src/logic.js";
 
 const adult = { id: "m-adult", name: "Alex", role: "adult" };
@@ -180,5 +180,36 @@ describe("allAnswered", () => {
   it("returns false when any question is missing an answer", () => {
     expect(allAnswered(questions, { q1: "yes" })).toBe(false);
     expect(allAnswered(questions, { q1: "yes", q2: "  " })).toBe(false);
+  });
+});
+
+describe("orderSurveysForWidget", () => {
+  const surveys = [
+    { id: "s1", title: "Old",    created_at: "2026-07-01T00:00:00Z" },
+    { id: "s2", title: "New",    created_at: "2026-07-20T00:00:00Z" },
+    { id: "s3", title: "Middle", created_at: "2026-07-10T00:00:00Z" },
+  ];
+
+  it("puts un-responded first, then newest-first within each group", () => {
+    // Responded to the newest (s2); s1 and s3 remain pending.
+    const out = orderSurveysForWidget(surveys, new Set(["s2"]));
+    expect(out.map((s) => s.id)).toEqual(["s3", "s1", "s2"]);
+    expect(out.map((s) => s.responded)).toEqual([0, 0, 1]);
+  });
+
+  it("accepts an array of responded ids too", () => {
+    const out = orderSurveysForWidget(surveys, ["s1"]);
+    expect(out.find((s) => s.id === "s1").responded).toBe(1);
+  });
+
+  it("marks all pending when nothing responded", () => {
+    const out = orderSurveysForWidget(surveys, new Set());
+    expect(out.map((s) => s.id)).toEqual(["s2", "s3", "s1"]);
+    expect(out.every((s) => s.responded === 0)).toBe(true);
+  });
+
+  it("does not mutate the input surveys", () => {
+    orderSurveysForWidget(surveys, new Set(["s1"]));
+    expect(surveys[0].responded).toBeUndefined();
   });
 });

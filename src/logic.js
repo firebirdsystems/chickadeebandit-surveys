@@ -28,6 +28,20 @@ export function responseCount(surveyId, responses) {
   return respondentIds(surveyId, responses).size;
 }
 
+/**
+ * Widget ordering: tag each survey with a `responded` flag (1/0) from the set
+ * of survey ids the viewer has a receipt for, then sort un-responded first and
+ * newest first within each group. Receipts are fetched separately rather than
+ * joined, because the hub's row-policy rewriter rejects referencing the
+ * governed response_receipts table inside a subquery of the surveys query.
+ */
+export function orderSurveysForWidget(surveys, respondedIds) {
+  const responded = respondedIds instanceof Set ? respondedIds : new Set(respondedIds ?? []);
+  return surveys
+    .map((s) => ({ ...s, responded: responded.has(s.id) ? 1 : 0 }))
+    .sort((a, b) => (a.responded - b.responded) || String(b.created_at).localeCompare(String(a.created_at)));
+}
+
 export function canManage(survey, me) {
   if (!me) return false;
   return isAdult(me);
