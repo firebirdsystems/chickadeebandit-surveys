@@ -151,24 +151,31 @@ async function load() {
 
   const { rows } = await dbq(
     `SELECT s.id, s.title, s.created_at,
-            COUNT(DISTINCT q.id) AS question_count,
-            IFNULL(resp.responded, 0) AS responded
+            COUNT(DISTINCT q.id) AS question_count
      FROM app_surveys__surveys s
      LEFT JOIN app_surveys__questions q ON q.survey_id = s.id
-     LEFT JOIN (
-       SELECT survey_id, 1 AS responded
-       FROM app_surveys__response_receipts
-       WHERE member_id = ?
-       GROUP BY survey_id
-     ) resp ON resp.survey_id = s.id
      WHERE s.status = 'open'
      GROUP BY s.id
-     ORDER BY responded ASC, s.created_at DESC
-     LIMIT 10`,
-    [memberId ?? ""]
+     ORDER BY s.created_at DESC
+     LIMIT 10`
   );
 
-  render(rows ?? []);
+  // Row policies forbid referencing a governed table inside a subquery, so the
+  // member's response receipts are fetched separately (owner_only collapses to
+  // their own rows) and merged client-side.
+  const responded = new Set();
+  if (memberId) {
+    const { rows: receipts } = await dbq(
+      `SELECT DISTINCT survey_id FROM app_surveys__response_receipts WHERE member_id = ?`,
+      [memberId]
+    );
+    for (const r of receipts ?? []) responded.add(r.survey_id);
+  }
+
+  const surveys = (rows ?? []).map(s => ({ ...s, responded: responded.has(s.id) ? 1 : 0 }));
+  surveys.sort((a, b) => (a.responded - b.responded) || (b.created_at < a.created_at ? -1 : 1));
+
+  render(surveys);
 }
 
 function render(surveys) {
