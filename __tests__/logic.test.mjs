@@ -21,27 +21,45 @@ describe("surveyStatus / isSurveyOpen", () => {
 });
 
 describe("respondentIds / hasResponded / responseCount", () => {
-  const responses = [
-    { survey_id: "s1", question_id: "q1", member_id: "m1", answer: "yes" },
-    { survey_id: "s1", question_id: "q2", member_id: "m1", answer: "no" },
-    { survey_id: "s1", question_id: "q1", member_id: "m2", answer: "no" },
-    { survey_id: "s2", question_id: "q3", member_id: "m3", answer: "yes" },
+  // Receipt rows (response_receipts), one per member per survey — NOT response
+  // rows, which are what these helpers used to be handed.
+  const receipts = [
+    { survey_id: "s1", member_id: "m1" },
+    { survey_id: "s1", member_id: "m2" },
+    { survey_id: "s2", member_id: "m3" },
   ];
 
-  it("dedupes member ids per survey", () => {
-    expect(respondentIds("s1", responses)).toEqual(new Set(["m1", "m2"]));
+  it("collects member ids per survey", () => {
+    expect(respondentIds("s1", receipts)).toEqual(new Set(["m1", "m2"]));
   });
 
   it("hasResponded reflects respondentIds", () => {
-    expect(hasResponded("s1", responses, "m1")).toBe(true);
-    expect(hasResponded("s1", responses, "m3")).toBe(false);
-    expect(hasResponded("s2", responses, "m3")).toBe(true);
+    expect(hasResponded("s1", receipts, "m1")).toBe(true);
+    expect(hasResponded("s1", receipts, "m3")).toBe(false);
+    expect(hasResponded("s2", receipts, "m3")).toBe(true);
+    expect(hasResponded("s1", receipts, null)).toBe(false);
   });
 
   it("responseCount counts distinct respondents", () => {
-    expect(responseCount("s1", responses)).toBe(2);
-    expect(responseCount("s2", responses)).toBe(1);
-    expect(responseCount("s3", responses)).toBe(0);
+    expect(responseCount("s1", receipts)).toBe(2);
+    expect(responseCount("s2", receipts)).toBe(1);
+    expect(responseCount("s3", receipts)).toBe(0);
+  });
+
+  it("ignores rows with no member id instead of inventing a respondent", () => {
+    // An anonymous survey's RESPONSE rows carry no member id. Passed here by
+    // mistake, they used to add `undefined` to the set — so a survey with
+    // fifty anonymous answers reported exactly one respondent.
+    const anonymousResponses = [
+      { survey_id: "s1", question_id: "q1", answer: "yes" },
+      { survey_id: "s1", question_id: "q1", answer: "no" },
+    ];
+    expect(respondentIds("s1", anonymousResponses)).toEqual(new Set());
+    expect(responseCount("s1", anonymousResponses)).toBe(0);
+  });
+
+  it("tolerates a missing receipt list", () => {
+    expect(responseCount("s1", undefined)).toBe(0);
   });
 });
 

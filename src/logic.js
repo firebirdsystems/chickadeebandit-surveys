@@ -12,20 +12,45 @@ export function isSurveyOpen(survey) {
   return surveyStatus(survey) === "open";
 }
 
-export function respondentIds(surveyId, responses) {
+/**
+ * Respondents for a survey, from RECEIPT rows (`response_receipts`) — never
+ * from response rows.
+ *
+ * These used to be handed the responses table. That is wrong in two ways at
+ * once. An anonymous survey's response rows carry no member id at all, so every
+ * one of them added `undefined` to the set and the whole survey counted as
+ * exactly one respondent. And a non-anonymous survey's responses are
+ * `endpoint_only, read: "none"` — an app cannot read them while the survey is
+ * open, so the set was empty anyway.
+ *
+ * Receipts are the table that records who has responded, for both modes. Rows
+ * without a member id are ignored rather than counted, so passing the wrong
+ * table can no longer invent a respondent.
+ *
+ * NOTE ON SCOPE: receipts are `owner_only` with `adults_bypass: false`, so a
+ * caller reading them through /api/db sees only their own. These helpers
+ * therefore answer "have I responded?" honestly and "how many have?" only for
+ * a receipt list the caller genuinely holds in full. For the household-wide
+ * count use the hub's `api/response-progress` endpoint, which returns the
+ * aggregate without exposing the rows.
+ */
+export function respondentIds(surveyId, receipts) {
   const ids = new Set();
-  for (const r of responses) {
-    if (r.survey_id === surveyId) ids.add(r.member_id);
+  for (const receipt of receipts ?? []) {
+    if (receipt.survey_id === surveyId && receipt.member_id) ids.add(receipt.member_id);
   }
   return ids;
 }
 
-export function hasResponded(surveyId, responses, memberId) {
-  return respondentIds(surveyId, responses).has(memberId);
+/** Whether `memberId` has a receipt for this survey. */
+export function hasResponded(surveyId, receipts, memberId) {
+  if (!memberId) return false;
+  return respondentIds(surveyId, receipts).has(memberId);
 }
 
-export function responseCount(surveyId, responses) {
-  return respondentIds(surveyId, responses).size;
+/** Distinct respondents in the receipt rows provided — see the scope note above. */
+export function responseCount(surveyId, receipts) {
+  return respondentIds(surveyId, receipts).size;
 }
 
 /**

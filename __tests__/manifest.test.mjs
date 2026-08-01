@@ -226,3 +226,53 @@ describe("migrations", () => {
     expect(sql).not.toMatch(/DROP TABLE/i);
   });
 });
+
+// Member removal (manifest.member_references). Responses are personal data and
+// go with the member. They are DELETED rather than nulled on purpose: a NULL
+// member_id is how this schema represents an anonymous response, so clearing
+// the column would disguise an attributed answer as an anonymous one. Answers
+// to an anonymous survey already carry NULL and are therefore never matched —
+// they stay, correctly anonymous. Receipts are keyed (survey_id, member_id)
+// with no `id` column, hence rowid.
+describe("member_references", () => {
+  it("deletes a departed member's responses and receipts", () => {
+    expect(manifest.member_references).toEqual({
+      surveys: { column: "created_by", on_removed: "keep" },
+      responses: { column: "member_id", on_removed: "delete" },
+      response_receipts: { column: "member_id", on_removed: "delete", id_column: "rowid" },
+    });
+  });
+});
+
+// A survey owns its questions, every response, and a receipt per respondent,
+// and nothing removed any of it. Retention is declared on the SURVEY and
+// cascades: the hub REFUSES retain_days on the response and receipt tables
+// themselves, because an anonymous survey stamps those rows with a constant
+// timestamp so submission order cannot deanonymize anyone — a sweep keyed on
+// them would purge every row on its first run. Ageing out the survey takes its
+// answers with it, which is the correct unit.
+describe("retention", () => {
+  it("expires the survey and cascades to questions, responses and receipts", () => {
+    expect(manifest.row_policies.surveys.retain_days).toEqual({
+      default: 730,
+      timestamp_column: "created_at",
+      override_key: "survey_history",
+      dependent_tables: [
+        { table: "questions", foreign_key: "survey_id" },
+        { table: "responses", foreign_key: "survey_id" },
+        { table: "response_receipts", foreign_key: "survey_id" },
+      ],
+    });
+  });
+
+  it("does not put retention on the anonymous protocol's own tables", () => {
+    for (const table of ["responses", "response_receipts"]) {
+      expect(manifest.row_policies[table].retain_days).toBeUndefined();
+    }
+  });
+
+  it("indexes the retention timestamp", () => {
+    const sql = readFileSync(join(__dirname, "../migrations/002_retention_index.sql"), "utf-8");
+    expect(sql).toMatch(/ON app_surveys__surveys \(created_at, id\)/);
+  });
+});

@@ -455,6 +455,7 @@
     const APP_ID          = window.__APP_ID ?? "surveys";
     const SUBMIT_RESPONSE = window.__SUBMIT_RESPONSE_URL ?? "";
     const RESPONSE_RESULTS = window.__RESPONSE_RESULTS_URL ?? "";
+    const RESPONSE_PROGRESS = window.__RESPONSE_PROGRESS_URL ?? "";
     let   ME      = window.__CURRENT_MEMBER ?? null;
     const IS_ADMIN  = window.__IS_ADMIN === true;
     const IS_ROSTER = window.__SPACE_KIND === "roster";
@@ -485,14 +486,20 @@
     // ── DB helper ────────────────────────────────────────────────────────────
     async function db(sql, params = []) {
       if (!DB) return { rows: [] };
-      try {
+      {
         const res = await fetch(DB, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sql, params }),
         });
-        return await res.json();
-      } catch { return { rows: [] }; }
+        const json = await res.json();
+        // The hub reports a refused write as a JSON body with an `error` key
+        // (403 row policy, 400 bad statement, 507 over quota). fetch() does not
+        // reject on those, so without this throw every caller's rollback and
+        // error toast below is unreachable code.
+        if (!res.ok || json.error) throw new Error(json.error || `Database request failed (${res.status})`);
+        return json;
+      }
     }
 
     // ── Demo data ────────────────────────────────────────────────────────────
@@ -582,7 +589,7 @@
       // is allowed to see (i_responded checks the receipt table so it works
       // for both anonymous and non-anonymous surveys).
       const [sRes, qRes, rRes] = await Promise.all([
-        db(`SELECT * FROM app_surveys__surveys ORDER BY created_at DESC`),
+        db(`SELECT * FROM app_surveys__surveys ORDER BY created_at DESC LIMIT 200`),
         db(`SELECT survey_id FROM app_surveys__questions`),
         db(`SELECT survey_id, member_id FROM app_surveys__response_receipts`),
       ]);
@@ -591,16 +598,38 @@
       for (const q of qRes.rows ?? []) {
         questionCounts.set(q.survey_id, (questionCounts.get(q.survey_id) ?? 0) + 1);
       }
-      responseCounts = new Map();
-      const seenPerSurvey = new Map();
+      // The receipts read above is owner-filtered by policy, so it answers
+      // "have I responded?" and nothing else. The household-wide tally comes
+      // from the hub, which counts the receipts without exposing them.
       myResponseIds = new Set();
       for (const r of rRes.rows ?? []) {
-        const seen = seenPerSurvey.get(r.survey_id) ?? new Set();
-        seen.add(r.member_id);
-        seenPerSurvey.set(r.survey_id, seen);
-        responseCounts.set(r.survey_id, seen.size);
         if (ME && r.member_id === ME.id) myResponseIds.add(r.survey_id);
       }
+      await loadResponseCounts();
+    }
+
+    /**
+     * "N of M responded", from api/response-progress.
+     *
+     * This used to be tallied from the receipts query above — which
+     * `owner_only, adults_bypass:false` narrows to the caller's own row, so the
+     * number displayed was 0 or 1 for every survey in every household since the
+     * app shipped. Loosening the policy would have exposed the respondent list,
+     * and for an anonymous survey that list is a step towards who answered
+     * what; the hub returns the aggregate instead.
+     */
+    async function loadResponseCounts() {
+      responseCounts = new Map();
+      if (!RESPONSE_PROGRESS) return;
+      await Promise.all(surveys.map(async (survey) => {
+        try {
+          const res = await fetch(`${RESPONSE_PROGRESS}?session_id=${encodeURIComponent(survey.id)}`);
+          if (!res.ok) return;
+          const body = await res.json();
+          responseCounts.set(survey.id, Number(body.responded) || 0);
+          if (body.you_responded) myResponseIds.add(survey.id);
+        } catch { /* leave this survey's count unknown rather than wrong */ }
+      }));
     }
 
     async function loadSurveyDetail(surveyId) {
@@ -763,10 +792,27 @@
         currentSurvey = null;
         render();
 
-        Promise.all([
-          notify(`New survey response`, `${ME.name} responded to "${survey.title}".`),
-          logActivity("survey_response", `${ME.name} responded to "${survey.title}"`, survey.id),
-        ]).catch(() => {});
+        // On an anonymous survey the responder must never be identified. The
+        // protocol goes to real lengths to withhold this — `responses` is
+        // endpoint_only/read:"none", member_id is never written, and created_at
+        // is pinned to a constant so submissions cannot be ordered.
+        //
+        // An activity entry hands all of it back, and rewording the description
+        // is NOT enough: handleAppActivityRequest resolves the caller's real
+        // name and stores it as `actor`, plus `memberId`, regardless of what the
+        // description says. So an anonymous survey writes no activity at all.
+        //
+        // The push notification is safe to send — that handler uses the caller's
+        // identity only for its ACL check and never stamps it into the payload —
+        // so organizers still learn a response arrived, just not from whom.
+        Promise.all(
+          survey.anonymous
+            ? [notify(`New survey response`, `Someone responded to "${survey.title}".`)]
+            : [
+                notify(`New survey response`, `${ME.name} responded to "${survey.title}".`),
+                logActivity("survey_response", `${ME.name} responded to "${survey.title}"`, survey.id),
+              ]
+        ).catch(() => {});
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Submit"; }
       }
