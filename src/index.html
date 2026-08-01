@@ -432,6 +432,13 @@
       letter-spacing: .05em;
       margin-bottom: 6px;
     }
+    .search-row { margin-bottom: 12px; }
+    .search-input {
+      width: 100%; border: 1.5px solid var(--border-mid, var(--border, #d1d5db));
+      border-radius: 8px; padding: 9px 11px; font: inherit;
+      background: var(--surface, var(--card, #fff)); color: var(--text, inherit);
+    }
+    .search-input:focus { outline: none; border-color: var(--accent, #6366f1); }
   </style>
 </head>
 <body>
@@ -441,12 +448,12 @@
 
   <script type="module">
     import {
-      hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate,
+      hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate, searchMatch,
     } from "/hub-sdk.js";
     import {
       surveyStatus, isSurveyOpen, hasResponded, responseCount, canManage,
       choiceResults, ratingAverage, ratingDistribution, yesNoSplit,
-      isAnswerValid, allAnswered,
+      isAnswerValid, allAnswered, searchableFields,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -469,6 +476,7 @@
     let members      = [];
     let memberMap    = new Map();
     let surveys      = [];
+let searchQ = "";       // in-app search (see logic.js searchableFields)
     let questionCounts  = new Map(); // surveyId -> number of questions
     let responseCounts  = new Map(); // surveyId -> number of distinct respondents
     let myResponseIds   = new Set(); // surveyIds I've responded to
@@ -1051,6 +1059,16 @@
     };
 
     // ── Rendering ────────────────────────────────────────────────────────────
+    // render() rewrites the whole view, so put the caret back after typing.
+    document.addEventListener("input", (e) => {
+      if (e.target.id !== "search") return;
+      searchQ = e.target.value;
+      const caret = e.target.selectionStart;
+      render();
+      const next = document.getElementById("search");
+      if (next) { next.focus(); next.setSelectionRange(caret, caret); }
+    });
+
     function render() {
       const app = document.getElementById("app");
       if (view === "take" && currentSurvey) {
@@ -1065,19 +1083,25 @@
     function renderListView() {
       const active = surveys.filter(s => isSurveyOpen(s));
       const closed = surveys.filter(s => !isSurveyOpen(s));
-      const list = listTab === "active" ? active : closed;
+      const scoped = listTab === "active" ? active : closed;
+      const list = searchQ ? scoped.filter(s => searchMatch(searchQ, searchableFields(s))) : scoped;
 
       const createBtn = ME && canSteward(ME)
         ? `<button class="btn btn-primary btn-sm" onclick="openCreateSurvey()">+ Create Survey</button>`
         : "";
 
-      const cards = list.length === 0 ? `
+      const cards = list.length === 0 ? (searchQ ? `
+        <div class="empty">
+          <div class="icon">🔍</div>
+          <h3>No surveys match "${esc(searchQ)}"</h3>
+        </div>
+      ` : `
         <div class="empty">
           <div class="icon">📋</div>
           <h3>${listTab === "active" ? "No active surveys" : "No closed surveys"}</h3>
           <p>${listTab === "active" ? "Create a survey to start collecting responses." : "Closed surveys with results will appear here."}</p>
         </div>
-      ` : list.map(s => surveyCardHtml(s)).join("");
+      `) : list.map(s => surveyCardHtml(s)).join("");
 
       return `
         <div class="page-header">
@@ -1088,6 +1112,7 @@
           <button class="tab ${listTab === "active" ? "active" : ""}" onclick="switchTab('active')">Active (${active.length})</button>
           <button class="tab ${listTab === "closed" ? "active" : ""}" onclick="switchTab('closed')">Closed (${closed.length})</button>
         </div>
+        ${surveys.length ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search surveys…" aria-label="Search surveys" value="${esc(searchQ)}" /></div>` : ""}
         ${cards}
       `;
     }

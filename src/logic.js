@@ -132,3 +132,12 @@ export function isAnswerValid(question, answer) {
 export function allAnswered(questions, answers) {
   return questions.every(q => isAnswerValid(q, answers[q.id]));
 }
+
+/**
+ * Fields the in-app search matches against (see hub-sdk `searchMatch`).
+ * The description says what a survey was for, which is how an old one
+ * is found once the title has blurred into "Feedback".
+ */
+export function searchableFields(item) {
+  return [item.title, item.description];
+}

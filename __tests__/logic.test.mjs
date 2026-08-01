@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   surveyStatus, isSurveyOpen, respondentIds, hasResponded, responseCount,
   canManage, choiceResults, ratingAverage, ratingDistribution, yesNoSplit,
-  isAnswerValid, allAnswered, orderSurveysForWidget,
+  isAnswerValid, allAnswered, orderSurveysForWidget, searchableFields,
 } from "../src/logic.js";
 
 const adult = { id: "m-adult", name: "Alex", role: "adult" };
@@ -229,5 +229,12 @@ describe("orderSurveysForWidget", () => {
   it("does not mutate the input surveys", () => {
     orderSurveysForWidget(surveys, new Set(["s1"]));
     expect(surveys[0].responded).toBeUndefined();
+  });
+});
+
+describe("searchableFields", () => {
+  it("matches on the description, not just the survey title", () => {
+    expect(searchableFields({ title: "Feedback", description: "summer camp catering" }))
+      .toContain("summer camp catering");
   });
 });
