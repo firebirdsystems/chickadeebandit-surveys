@@ -80,6 +80,7 @@
     "session_status_column": "status",
     "session_open_value": "open",
     "session_anonymous_column": "anonymous",
+    "session_deadline_column": "closes_at",
     "result_visible_values": ["closed"],
     "question_table": "questions",
     "question_session_column": "survey_id",
@@ -102,6 +103,26 @@
     "survey.created",
     "survey.closed"
   ],
+  "agenda": {
+    "kind": "reminder",
+    "label": "Surveys",
+    "source": {
+      "kind": "sql",
+      "query": "SELECT s.id AS id, s.title AS title, s.closes_at AS when_at FROM app_surveys__surveys s LEFT JOIN app_surveys__response_receipts r ON r.survey_id = s.id WHERE s.status = 'open' AND substr(s.closes_at, 1, 10) = :today AND r.member_id IS NULL LIMIT 10"
+    }
+  },
+  "glance": {
+    "source": {
+      "kind": "sql",
+      "query": "SELECT COUNT(*) AS n FROM app_surveys__surveys s LEFT JOIN app_surveys__response_receipts r ON r.survey_id = s.id WHERE s.status = 'open' AND r.member_id IS NULL LIMIT 1"
+    },
+    "display": {
+      "template": "badge",
+      "count": "n",
+      "label": "surveys waiting for you",
+      "severity": "info"
+    }
+  },
   "nav": { "label": "Surveys" },
   "widget": { "label": "Surveys", "size": "small" },
   "resource_limits": {

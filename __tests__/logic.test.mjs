@@ -18,6 +18,30 @@ describe("surveyStatus / isSurveyOpen", () => {
     expect(surveyStatus({ status: "closed" })).toBe("closed");
     expect(isSurveyOpen({ status: "closed" })).toBe(false);
   });
+
+  // closes_at is wired to the hub's session_deadline_column: once it passes the
+  // hub refuses responses and releases results WITHOUT changing status, so a
+  // client reading status alone would offer a survey the hub rejects.
+  // The deadlines here are DAYS from `now`, not hours: closes_at is a floating
+  // wall time, so `new Date()` reads it in whatever zone the test runner sits
+  // in. Anything within ±14h of `now` would pass or fail by machine.
+  it("treats a passed closes_at as closed even while status is open", () => {
+    const now = new Date("2026-08-05T12:00:00Z");
+    expect(isSurveyOpen({ status: "open", closes_at: "2026-08-01T09:00" }, now)).toBe(false);
+    expect(surveyStatus({ status: "open", closes_at: "2026-08-01T09:00" }, now)).toBe("closed");
+  });
+
+  it("keeps a survey open until its deadline arrives", () => {
+    const now = new Date("2026-08-05T12:00:00Z");
+    expect(isSurveyOpen({ status: "open", closes_at: "2026-08-09T18:00" }, now)).toBe(true);
+  });
+
+  it("treats a missing or unparseable closes_at as no deadline", () => {
+    const now = new Date("2026-08-05T12:00:00Z");
+    for (const closes_at of [null, undefined, "", "whenever"]) {
+      expect(isSurveyOpen({ status: "open", closes_at }, now)).toBe(true);
+    }
+  });
 });
 
 describe("respondentIds / hasResponded / responseCount", () => {

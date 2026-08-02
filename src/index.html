@@ -134,6 +134,8 @@
     }
     .tab.active { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
 
+    .field-hint { margin-top: 4px; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+
     /* ── Survey list cards ─────────────────────────────── */
     .survey-card {
       background: var(--card);
@@ -859,6 +861,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         title: "",
         description: "",
         anonymous: false,
+        closesAt: "",
         questions: [{ text: "", type: "yesno", options: ["", ""] }],
       };
       renderCreateModal();
@@ -876,6 +879,11 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           <div class="form-group">
             <label for="f-desc">Description (optional)</label>
             <textarea id="f-desc" placeholder="What's this survey about?">${esc(surveyForm.description)}</textarea>
+          </div>
+          <div class="form-group">
+            <label for="f-closes">Responses close (optional)</label>
+            <input type="datetime-local" id="f-closes" value="${esc(surveyForm.closesAt)}" />
+            <div class="field-hint">Leave empty to keep it open until you close it yourself. After the deadline the hub stops accepting responses and the results unlock on their own.</div>
           </div>
           <label class="checkbox-row">
             <input type="checkbox" id="f-anon" ${surveyForm.anonymous ? "checked" : ""} />
@@ -946,6 +954,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       surveyForm.title = document.getElementById("f-title")?.value ?? surveyForm.title;
       surveyForm.description = document.getElementById("f-desc")?.value ?? surveyForm.description;
       surveyForm.anonymous = document.getElementById("f-anon")?.checked ?? surveyForm.anonymous;
+      surveyForm.closesAt = document.getElementById("f-closes")?.value ?? surveyForm.closesAt;
       surveyForm.step = 1;
       renderCreateModal();
     };
@@ -956,6 +965,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       surveyForm.title = title;
       surveyForm.description = document.getElementById("f-desc").value.trim();
       surveyForm.anonymous = document.getElementById("f-anon").checked;
+      surveyForm.closesAt = document.getElementById("f-closes").value;
       surveyForm.step = 2;
       renderCreateModal();
     };
@@ -1021,6 +1031,10 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       const title = surveyForm.title;
       const description = surveyForm.description;
       const anonymous = surveyForm.anonymous ? 1 : 0;
+      // Stored as the raw datetime-local wall time (no zone suffix). The hub
+      // resolves it in the household's timezone — see the anonymous_responses
+      // session_deadline_column contract — so 8pm means 8pm here.
+      const closesAt = surveyForm.closesAt || null;
       const questions = surveyForm.questions.map((q, i) => ({
         id: uid(), survey_id: surveyId, text: q.text.trim(), type: q.type,
         options: q.type === "choice" ? q.options : [], position: i,
@@ -1028,8 +1042,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
       try {
         await db(
-          `INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at) VALUES (?, ?, ?, 'open', ?, ?, ?)`,
-          [surveyId, title, description, anonymous, ME.id, now]
+          `INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closes_at) VALUES (?, ?, ?, 'open', ?, ?, ?, ?)`,
+          [surveyId, title, description, anonymous, ME.id, now, closesAt]
         );
         const placeholders = questions.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
         const params = questions.flatMap(q => [q.id, q.survey_id, q.text, q.type, JSON.stringify(q.options), q.position]);
@@ -1039,7 +1053,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         );
 
         // Update local state and render immediately — no reload.
-        surveys = [{ id: surveyId, title, description, status: "open", anonymous, created_by: ME.id, created_at: now, closed_at: null }, ...surveys];
+        surveys = [{ id: surveyId, title, description, status: "open", anonymous, created_by: ME.id, created_at: now, closed_at: null, closes_at: closesAt }, ...surveys];
         currentQuestionsCache.set(surveyId, questions);
         questionCounts.set(surveyId, questions.length);
         responseCounts.set(surveyId, 0);
@@ -1117,6 +1131,15 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       `;
     }
 
+    /** "Fri 8 Aug, 20:00" from a floating datetime-local deadline. */
+    function formatDeadline(closesAt) {
+      const d = new Date(closesAt);
+      if (Number.isNaN(d.getTime())) return closesAt;
+      return d.toLocaleString(undefined, {
+        weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+      });
+    }
+
     function surveyCardHtml(s) {
       const qCount = questionCounts.get(s.id) ?? 0;
       const rCount = responseCounts.get(s.id) ?? 0;
@@ -1128,6 +1151,9 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       else badges.push(`<span class="badge badge-closed">Closed</span>`);
       if (s.anonymous) badges.push(`<span class="badge badge-anon">Anonymous</span>`);
       if (responded) badges.push(`<span class="badge badge-done">You responded ✓</span>`);
+      if (s.closes_at && isSurveyOpen(s)) {
+        badges.push(`<span class="badge badge-closed">Closes ${esc(formatDeadline(s.closes_at))}</span>`);
+      }
 
       return `
         <div class="survey-card" onclick="openSurvey('${s.id}')">

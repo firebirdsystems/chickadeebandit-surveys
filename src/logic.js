@@ -4,12 +4,36 @@ export { AVATAR_COLORS, memberColor, initial, esc, isAdult, formatRelativeDate }
 
 import { isAdult } from "./shared.js";
 
-export function surveyStatus(survey) {
-  return survey.status === "closed" ? "closed" : "open";
+/**
+ * A survey is closed either because someone closed it OR because its optional
+ * `closes_at` deadline has passed.
+ *
+ * The deadline half is not cosmetic. `closes_at` is wired to the hub's
+ * anonymous_responses `session_deadline_column`, so once it passes the hub
+ * refuses responses (409) and releases results — all without touching `status`.
+ * A client that read `status` alone would keep offering "Take survey" on a
+ * survey the hub will not accept, and hide results the hub is already serving.
+ *
+ * `closes_at` is a FLOATING wall time (`YYYY-MM-DDTHH:MM`, straight from
+ * `<input type="datetime-local">`) and the hub resolves it in the household's
+ * timezone. `new Date()` in the browser parses it in the DEVICE's zone, which is
+ * the household's zone for anyone actually in the household — the honest
+ * approximation available client-side, and only the hub's answer is binding.
+ */
+export function surveyStatus(survey, now = new Date()) {
+  if (survey.status === "closed") return "closed";
+  return deadlinePassed(survey.closes_at, now) ? "closed" : "open";
 }
 
-export function isSurveyOpen(survey) {
-  return surveyStatus(survey) === "open";
+/** Whether a floating-or-zoned deadline string is in the past. */
+export function deadlinePassed(closesAt, now = new Date()) {
+  if (typeof closesAt !== "string" || !closesAt) return false;
+  const at = new Date(closesAt).getTime();
+  return Number.isFinite(at) && at <= now.getTime();
+}
+
+export function isSurveyOpen(survey, now = new Date()) {
+  return surveyStatus(survey, now) === "open";
 }
 
 /**
