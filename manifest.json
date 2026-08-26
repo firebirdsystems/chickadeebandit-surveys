@@ -25,6 +25,11 @@
   },
   "contexts": ["household", "shared_space", "shared_space.roster"],
   "storage": "db",
+  "preload": {
+    "surveys": {"sql": "SELECT * FROM app_surveys__surveys ORDER BY created_at DESC LIMIT 200"},
+    "questions": {"sql": "SELECT survey_id FROM app_surveys__questions"},
+    "response_receipts": {"sql": "SELECT survey_id, member_id FROM app_surveys__response_receipts"}
+  },
   "row_policies": {
     "surveys": {
       "kind": "adult_writable",
