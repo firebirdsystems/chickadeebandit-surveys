@@ -1,0 +1,305 @@
+{
+  "scenarios": [
+    {
+      "name": "an anonymous survey's answers are withheld while it is open, and never name the responder once it closes",
+      "members": {
+        "owner": "adult",
+        "other": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at) VALUES (?, ?, ?, 'open', 1, ?, datetime('now'))",
+          "params": [
+            "ui-anon-survey",
+            "Team Morale Check",
+            "Say what you really think.",
+            "{{owner}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, 'text', ?, 0)",
+          "params": [
+            "ui-anon-q1",
+            "ui-anon-survey",
+            "What should we change?",
+            "[]"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))",
+          "params": [
+            "ui-anon-r1",
+            "ui-anon-survey",
+            "ui-anon-q1",
+            "{{owner}}",
+            "Start the week later"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))",
+          "params": [
+            "ui-anon-r2",
+            "ui-anon-survey",
+            "ui-anon-q1",
+            "{{other}}",
+            "Fewer meetings on Fridays"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, datetime('now'))",
+          "params": [
+            "ui-anon-survey",
+            "{{owner}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, datetime('now'))",
+          "params": [
+            "ui-anon-survey",
+            "{{other}}"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "owner"
+        },
+        {
+          "action": "waitFor",
+          "as": "owner",
+          "selector": "[data-testid=\"survey-card\"][data-survey-id=\"ui-anon-survey\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "owner",
+          "text": "Team Morale Check",
+          "selector": "[data-testid=\"surveys-list\"]"
+        },
+        {
+          "action": "click",
+          "as": "owner",
+          "selector": "[data-testid=\"survey-card\"][data-survey-id=\"ui-anon-survey\"]"
+        },
+        {
+          "action": "waitFor",
+          "as": "owner",
+          "selector": "[data-testid=\"waiting-card\"]"
+        },
+        {
+          "action": "expectNoText",
+          "as": "owner",
+          "text": "Fewer meetings on Fridays"
+        },
+        {
+          "action": "expectNoText",
+          "as": "owner",
+          "text": "Start the week later"
+        },
+        {
+          "action": "click",
+          "as": "owner",
+          "selector": "[data-testid=\"close-survey\"]"
+        },
+        {
+          "action": "waitFor",
+          "as": "owner",
+          "selector": "[data-testid=\"result-block\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "owner",
+          "text": "Fewer meetings on Fridays",
+          "selector": "[data-testid=\"result-block\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "owner",
+          "text": "Start the week later",
+          "selector": "[data-testid=\"result-block\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "owner",
+          "selector": "[data-testid=\"text-response\"]",
+          "count": 2
+        },
+        {
+          "action": "expectText",
+          "as": "owner",
+          "text": "Anonymous",
+          "selector": "[data-testid=\"result-block\"]"
+        },
+        {
+          "action": "expectNoText",
+          "as": "owner",
+          "text": "E2E surveys-other"
+        },
+        {
+          "action": "expectNoText",
+          "as": "owner",
+          "text": "E2E surveys-owner"
+        },
+        {
+          "action": "open",
+          "as": "other"
+        },
+        {
+          "action": "waitFor",
+          "as": "other",
+          "selector": "[data-testid=\"tab-closed\"]"
+        },
+        {
+          "action": "click",
+          "as": "other",
+          "selector": "[data-testid=\"tab-closed\"]"
+        },
+        {
+          "action": "click",
+          "as": "other",
+          "selector": "[data-testid=\"survey-card\"][data-survey-id=\"ui-anon-survey\"]"
+        },
+        {
+          "action": "waitFor",
+          "as": "other",
+          "selector": "[data-testid=\"result-block\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "other",
+          "text": "Fewer meetings on Fridays",
+          "selector": "[data-testid=\"result-block\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "other",
+          "text": "Anonymous",
+          "selector": "[data-testid=\"result-block\"]"
+        },
+        {
+          "action": "expectNoText",
+          "as": "other",
+          "text": "E2E surveys-other"
+        },
+        {
+          "action": "expectNoText",
+          "as": "other",
+          "text": "E2E surveys-owner"
+        }
+      ]
+    },
+    {
+      "name": "a survey built through the two-step modal survives a reload, and Cancel discards instead of launching",
+      "members": {
+        "member": "adult"
+      },
+      "steps": [
+        {
+          "action": "open"
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid=\"new-survey\"]"
+        },
+        {
+          "action": "click",
+          "selector": "[data-testid=\"new-survey\"]"
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid=\"survey-create-modal\"]"
+        },
+        {
+          "action": "fill",
+          "selector": "[data-testid=\"field-title\"]",
+          "value": "Weekend Plans"
+        },
+        {
+          "action": "fill",
+          "selector": "[data-testid=\"field-description\"]",
+          "value": "Where should we go?"
+        },
+        {
+          "action": "click",
+          "selector": "[data-testid=\"create-next\"]"
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid=\"survey-questions-modal\"]"
+        },
+        {
+          "action": "fill",
+          "selector": "[data-testid=\"field-question-text\"][data-question-index=\"0\"]",
+          "value": "Should we go camping?"
+        },
+        {
+          "action": "click",
+          "selector": "[data-testid=\"launch-survey\"]"
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid=\"survey-questions-modal\"]",
+          "state": "detached"
+        },
+        {
+          "action": "expectText",
+          "text": "Weekend Plans",
+          "selector": "[data-testid=\"surveys-list\"]"
+        },
+        {
+          "action": "reload"
+        },
+        {
+          "action": "expectCount",
+          "selector": "[data-testid=\"survey-card\"]",
+          "count": 1
+        },
+        {
+          "action": "expectText",
+          "text": "Where should we go?",
+          "selector": "[data-testid=\"surveys-list\"]"
+        },
+        {
+          "action": "expectText",
+          "text": "1 question",
+          "selector": "[data-testid=\"survey-meta\"]"
+        },
+        {
+          "action": "click",
+          "selector": "[data-testid=\"new-survey\"]"
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid=\"survey-create-modal\"]"
+        },
+        {
+          "action": "fill",
+          "selector": "[data-testid=\"field-title\"]",
+          "value": "Discarded Draft"
+        },
+        {
+          "action": "click",
+          "selector": "[data-testid=\"create-cancel\"]"
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid=\"survey-create-modal\"]",
+          "state": "detached"
+        },
+        {
+          "action": "expectCount",
+          "selector": "[data-testid=\"survey-card\"]",
+          "count": 1
+        },
+        {
+          "action": "expectNoText",
+          "text": "Discarded Draft"
+        }
+      ]
+    }
+  ]
+}

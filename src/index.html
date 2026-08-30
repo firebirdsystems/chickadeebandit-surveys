@@ -700,11 +700,14 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     }
 
     // ── Modal ────────────────────────────────────────────────────────────────
-    function openModal(html) {
+    // `testid` names the dialog so a UI scenario can wait on the modal it just
+    // opened rather than on "any modal" — the create flow has two steps that
+    // are both a `.modal`.
+    function openModal(html, testid) {
       closeModal();
       modalEl = document.createElement("div");
       modalEl.className = "modal-backdrop";
-      modalEl.innerHTML = `<div class="modal">${html}</div>`;
+      modalEl.innerHTML = `<div class="modal"${testid ? ` data-testid="${testid}"` : ""}>${html}</div>`;
       modalEl.addEventListener("click", e => { if (e.target === modalEl) closeModal(); });
       document.body.appendChild(modalEl);
     }
@@ -874,40 +877,40 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           <h2>New Survey</h2>
           <div class="form-group">
             <label for="f-title">Title</label>
-            <input type="text" id="f-title" value="${esc(surveyForm.title)}" placeholder="e.g. Summer Trip Planning" />
+            <input type="text" id="f-title" data-testid="field-title" value="${esc(surveyForm.title)}" placeholder="e.g. Summer Trip Planning" />
           </div>
           <div class="form-group">
             <label for="f-desc">Description (optional)</label>
-            <textarea id="f-desc" placeholder="What's this survey about?">${esc(surveyForm.description)}</textarea>
+            <textarea id="f-desc" data-testid="field-description" placeholder="What's this survey about?">${esc(surveyForm.description)}</textarea>
           </div>
           <div class="form-group">
             <label for="f-closes">Responses close (optional)</label>
-            <input type="datetime-local" id="f-closes" value="${esc(surveyForm.closesAt)}" />
+            <input type="datetime-local" id="f-closes" data-testid="field-closes-at" value="${esc(surveyForm.closesAt)}" />
             <div class="field-hint">Leave empty to keep it open until you close it yourself. After the deadline the hub stops accepting responses and the results unlock on their own.</div>
           </div>
           <label class="checkbox-row">
-            <input type="checkbox" id="f-anon" ${surveyForm.anonymous ? "checked" : ""} />
+            <input type="checkbox" id="f-anon" data-testid="field-anonymous" ${surveyForm.anonymous ? "checked" : ""} />
             Anonymous responses
           </label>
           <div class="modal-actions">
-            <button class="btn btn-ghost" onclick="closeCreateModal()">Cancel</button>
+            <button class="btn btn-ghost" data-testid="create-cancel" onclick="closeCreateModal()">Cancel</button>
             <span class="spacer"></span>
-            <button class="btn btn-primary" onclick="goToStep2()">Next</button>
+            <button class="btn btn-primary" data-testid="create-next" onclick="goToStep2()">Next</button>
           </div>
-        `);
+        `, "survey-create-modal");
       } else {
         const questionsHtml = surveyForm.questions.map((q, i) => questionDraftHtml(q, i)).join("");
         openModal(`
           <div class="step-indicator">Step 2 of 2 — Questions</div>
           <h2>Build Your Survey</h2>
           ${questionsHtml}
-          ${surveyForm.questions.length < 10 ? `<button class="btn btn-ghost btn-block" onclick="addQuestion()">+ Add Question</button>` : ""}
+          ${surveyForm.questions.length < 10 ? `<button class="btn btn-ghost btn-block" data-testid="add-question" onclick="addQuestion()">+ Add Question</button>` : ""}
           <div class="modal-actions">
-            <button class="btn btn-ghost" onclick="goToStep1()">Back</button>
+            <button class="btn btn-ghost" data-testid="create-back" onclick="goToStep1()">Back</button>
             <span class="spacer"></span>
-            <button class="btn btn-primary" onclick="launchSurvey()">Launch Survey</button>
+            <button class="btn btn-primary" data-testid="launch-survey" onclick="launchSurvey()">Launch Survey</button>
           </div>
-        `);
+        `, "survey-questions-modal");
       }
       requestAnimationFrame(() => modalEl?.querySelector("input, textarea, select")?.focus());
     }
@@ -918,26 +921,26 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           <label>Options</label>
           ${q.options.map((opt, oi) => `
             <div class="option-row">
-              <input type="text" value="${esc(opt)}" placeholder="Option ${oi + 1}" oninput="updateOption(${i}, ${oi}, this.value)" />
-              ${q.options.length > 2 ? `<button onclick="removeOption(${i}, ${oi})" title="Remove option">✕</button>` : ""}
+              <input type="text" data-testid="field-option" data-question-index="${i}" data-option-index="${oi}" value="${esc(opt)}" placeholder="Option ${oi + 1}" oninput="updateOption(${i}, ${oi}, this.value)" />
+              ${q.options.length > 2 ? `<button data-testid="remove-option" data-question-index="${i}" data-option-index="${oi}" onclick="removeOption(${i}, ${oi})" title="Remove option">✕</button>` : ""}
             </div>
           `).join("")}
-          ${q.options.length < 5 ? `<button class="btn btn-ghost btn-sm" onclick="addOption(${i})">+ Add option</button>` : ""}
+          ${q.options.length < 5 ? `<button class="btn btn-ghost btn-sm" data-testid="add-option" data-question-index="${i}" onclick="addOption(${i})">+ Add option</button>` : ""}
         </div>
       ` : "";
 
       return `
-        <div class="question-draft">
+        <div class="question-draft" data-testid="question-draft" data-question-index="${i}">
           <div class="question-draft-header">
             <span class="num">Question ${i + 1}</span>
-            ${surveyForm.questions.length > 1 ? `<button class="remove-q-btn" onclick="removeQuestion(${i})" title="Remove question">✕</button>` : ""}
+            ${surveyForm.questions.length > 1 ? `<button class="remove-q-btn" data-testid="remove-question" data-question-index="${i}" onclick="removeQuestion(${i})" title="Remove question">✕</button>` : ""}
           </div>
           <div class="form-group">
-            <input type="text" value="${esc(q.text)}" placeholder="Question text" oninput="updateQuestionText(${i}, this.value)" />
+            <input type="text" data-testid="field-question-text" data-question-index="${i}" value="${esc(q.text)}" placeholder="Question text" oninput="updateQuestionText(${i}, this.value)" />
           </div>
           <div class="form-group">
             <label>Answer type</label>
-            <select onchange="updateQuestionType(${i}, this.value)">
+            <select data-testid="field-question-type" data-question-index="${i}" onchange="updateQuestionType(${i}, this.value)">
               <option value="yesno" ${q.type === "yesno" ? "selected" : ""}>Yes / No</option>
               <option value="choice" ${q.type === "choice" ? "selected" : ""}>Multiple choice</option>
               <option value="rating" ${q.type === "rating" ? "selected" : ""}>Rating (1-5)</option>
@@ -1101,16 +1104,16 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       const list = searchQ ? scoped.filter(s => searchMatch(searchQ, searchableFields(s))) : scoped;
 
       const createBtn = ME && canSteward(ME)
-        ? `<button class="btn btn-primary btn-sm" onclick="openCreateSurvey()">+ Create Survey</button>`
+        ? `<button class="btn btn-primary btn-sm" data-testid="new-survey" onclick="openCreateSurvey()">+ Create Survey</button>`
         : "";
 
       const cards = list.length === 0 ? (searchQ ? `
-        <div class="empty">
+        <div class="empty" data-testid="empty-state">
           <div class="icon">🔍</div>
           <h3>No surveys match "${esc(searchQ)}"</h3>
         </div>
       ` : `
-        <div class="empty">
+        <div class="empty" data-testid="empty-state">
           <div class="icon">📋</div>
           <h3>${listTab === "active" ? "No active surveys" : "No closed surveys"}</h3>
           <p>${listTab === "active" ? "Create a survey to start collecting responses." : "Closed surveys with results will appear here."}</p>
@@ -1123,11 +1126,11 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           ${createBtn}
         </div>
         <div class="tabs">
-          <button class="tab ${listTab === "active" ? "active" : ""}" onclick="switchTab('active')">Active (${active.length})</button>
-          <button class="tab ${listTab === "closed" ? "active" : ""}" onclick="switchTab('closed')">Closed (${closed.length})</button>
+          <button class="tab ${listTab === "active" ? "active" : ""}" data-testid="tab-active" onclick="switchTab('active')">Active (${active.length})</button>
+          <button class="tab ${listTab === "closed" ? "active" : ""}" data-testid="tab-closed" onclick="switchTab('closed')">Closed (${closed.length})</button>
         </div>
-        ${surveys.length ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search surveys…" aria-label="Search surveys" value="${esc(searchQ)}" /></div>` : ""}
-        ${cards}
+        ${surveys.length ? `<div class="search-row"><input id="search" data-testid="search" class="search-input" type="search" placeholder="Search surveys…" aria-label="Search surveys" value="${esc(searchQ)}" /></div>` : ""}
+        <div data-testid="surveys-list">${cards}</div>
       `;
     }
 
@@ -1156,11 +1159,11 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       }
 
       return `
-        <div class="survey-card" onclick="openSurvey('${s.id}')">
+        <div class="survey-card" data-testid="survey-card" data-survey-id="${s.id}" onclick="openSurvey('${s.id}')">
           <div class="survey-card-inner">
-            <div class="survey-title">${esc(s.title)}</div>
-            ${s.description ? `<div class="survey-desc">${esc(s.description)}</div>` : ""}
-            <div class="survey-meta">
+            <div class="survey-title" data-testid="survey-title">${esc(s.title)}</div>
+            ${s.description ? `<div class="survey-desc" data-testid="survey-description">${esc(s.description)}</div>` : ""}
+            <div class="survey-meta" data-testid="survey-meta">
               ${badges.join("")}
               <span class="badge badge-closed">${qCount} question${qCount === 1 ? "" : "s"}</span>
               <span class="badge badge-closed">${rCount} of ${total} responded</span>
@@ -1179,19 +1182,21 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       const isLast = currentStep === total - 1;
 
       return `
+        <div data-testid="take-view" data-survey-id="${currentSurvey.id}" data-question-id="${q.id}">
         <div class="take-header">
-          <button class="back-btn" onclick="prevQuestion()" title="Back">←</button>
+          <button class="back-btn" data-testid="take-header-back" onclick="prevQuestion()" title="Back">←</button>
           <div style="flex:1">
-            <div class="survey-title" style="margin-bottom:0">${esc(currentSurvey.title)}</div>
+            <div class="survey-title" data-testid="survey-title" style="margin-bottom:0">${esc(currentSurvey.title)}</div>
           </div>
         </div>
-        <div class="q-progress-label">Question ${currentStep + 1} of ${total}</div>
+        <div class="q-progress-label" data-testid="q-progress-label">Question ${currentStep + 1} of ${total}</div>
         <div class="q-progress"><div class="q-progress-fill" style="width:${pct}%"></div></div>
-        <div class="question-text">${esc(q.text)}</div>
+        <div class="question-text" data-testid="question-text">${esc(q.text)}</div>
         ${answerInputHtml(q, answer)}
         <div class="take-nav">
-          <button class="btn btn-ghost" onclick="prevQuestion()">${currentStep === 0 ? "Cancel" : "Back"}</button>
-          <button class="btn btn-primary" onclick="nextQuestion()" ${valid ? "" : "disabled"}>${isLast ? "Submit" : "Next"}</button>
+          <button class="btn btn-ghost" data-testid="take-back" onclick="prevQuestion()">${currentStep === 0 ? "Cancel" : "Back"}</button>
+          <button class="btn btn-primary" data-testid="take-next" onclick="nextQuestion()" ${valid ? "" : "disabled"}>${isLast ? "Submit" : "Next"}</button>
+        </div>
         </div>
       `;
     }
@@ -1201,24 +1206,24 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         case "yesno":
           return `
             <div class="answer-row">
-              <button class="answer-btn ${answer === "yes" ? "selected" : ""}" onclick="selectAnswer('${q.id}','yes')">Yes</button>
-              <button class="answer-btn ${answer === "no" ? "selected" : ""}" onclick="selectAnswer('${q.id}','no')">No</button>
+              <button class="answer-btn ${answer === "yes" ? "selected" : ""}" data-testid="answer-option" data-value="yes" onclick="selectAnswer('${q.id}','yes')">Yes</button>
+              <button class="answer-btn ${answer === "no" ? "selected" : ""}" data-testid="answer-option" data-value="no" onclick="selectAnswer('${q.id}','no')">No</button>
             </div>
           `;
         case "rating":
           return `
             <div class="answer-row">
               ${["1","2","3","4","5"].map(v => `
-                <button class="answer-btn ${answer === v ? "selected" : ""}" onclick="selectAnswer('${q.id}','${v}')">${v}</button>
+                <button class="answer-btn ${answer === v ? "selected" : ""}" data-testid="answer-option" data-value="${v}" onclick="selectAnswer('${q.id}','${v}')">${v}</button>
               `).join("")}
             </div>
           `;
         case "choice":
           return q.options.map(opt => `
-            <button class="answer-btn ${answer === opt ? "selected" : ""}" onclick="selectAnswer('${q.id}', ${esc(JSON.stringify(opt))})">${esc(opt)}</button>
+            <button class="answer-btn ${answer === opt ? "selected" : ""}" data-testid="answer-option" data-value="${esc(opt)}" onclick="selectAnswer('${q.id}', ${esc(JSON.stringify(opt))})">${esc(opt)}</button>
           `).join("");
         case "text":
-          return `<textarea class="answer-textarea" placeholder="Type your answer…" oninput="setTextAnswerLive('${q.id}', this)">${esc(answer ?? "")}</textarea>`;
+          return `<textarea class="answer-textarea" data-testid="answer-text" placeholder="Type your answer…" oninput="setTextAnswerLive('${q.id}', this)">${esc(answer ?? "")}</textarea>`;
         default:
           return "";
       }
@@ -1240,22 +1245,24 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       const manage = canManage(survey, ME) && (!IS_ROSTER || IS_ADMIN);
 
       const closeBtn = (!closed && manage)
-        ? `<button class="btn btn-danger btn-sm" onclick="closeSurvey('${survey.id}')">Close Survey</button>`
+        ? `<button class="btn btn-danger btn-sm" data-testid="close-survey" onclick="closeSurvey('${survey.id}')">Close Survey</button>`
         : "";
 
       if (!closed) {
         return `
+          <div data-testid="results-view" data-survey-id="${survey.id}" data-results-released="false">
           <div class="take-header">
-            <button class="back-btn" onclick="backToList()" title="Back">←</button>
+            <button class="back-btn" data-testid="results-back" onclick="backToList()" title="Back">←</button>
             <div style="flex:1">
-              <div class="survey-title" style="margin-bottom:0">${esc(survey.title)}</div>
+              <div class="survey-title" data-testid="survey-title" style="margin-bottom:0">${esc(survey.title)}</div>
             </div>
             ${closeBtn}
           </div>
-          <div class="card waiting-card">
+          <div class="card waiting-card" data-testid="waiting-card">
             <div class="icon">✅</div>
             <h3>Thanks for responding!</h3>
             <p>Results will be shown once the survey closes.<br>${rCount} of ${total} members have responded so far.</p>
+          </div>
           </div>
         `;
       }
@@ -1263,15 +1270,17 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       const blocks = currentQuestions.map(q => resultBlockHtml(q, survey)).join("");
 
       return `
+        <div data-testid="results-view" data-survey-id="${survey.id}" data-results-released="true">
         <div class="take-header">
-          <button class="back-btn" onclick="backToList()" title="Back">←</button>
+          <button class="back-btn" data-testid="results-back" onclick="backToList()" title="Back">←</button>
           <div style="flex:1">
-            <div class="survey-title" style="margin-bottom:0">${esc(survey.title)}</div>
+            <div class="survey-title" data-testid="survey-title" style="margin-bottom:0">${esc(survey.title)}</div>
           </div>
           ${closeBtn}
         </div>
-        <div class="response-summary">${rCount} of ${total} members responded${survey.anonymous ? " · anonymous" : ""}</div>
+        <div class="response-summary" data-testid="response-summary">${rCount} of ${total} members responded${survey.anonymous ? " · anonymous" : ""}</div>
         ${blocks}
+        </div>
       `;
     }
 
@@ -1283,8 +1292,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           body = q.options.map(opt => {
             const { count, pct } = results.get(opt);
             return `
-              <div class="result-row">
-                <div class="result-row-label"><span class="opt">${esc(opt)}</span><span class="stat">${count} (${pct}%)</span></div>
+              <div class="result-row" data-testid="result-row" data-option="${esc(opt)}">
+                <div class="result-row-label"><span class="opt">${esc(opt)}</span><span class="stat" data-testid="result-stat">${count} (${pct}%)</span></div>
                 <div class="result-bar"><div class="result-bar-fill" style="width:${pct}%"></div></div>
               </div>
             `;
@@ -1296,12 +1305,12 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           const dist = ratingDistribution(q.id, currentResponses);
           const total = [...dist.values()].reduce((a, b) => a + b, 0);
           body = `
-            <div class="result-avg">${avg.toFixed(1)} <span>/ 5 average</span></div>
+            <div class="result-avg" data-testid="result-average">${avg.toFixed(1)} <span>/ 5 average</span></div>
             ${[...dist.entries()].map(([val, count]) => {
               const pct = total > 0 ? Math.round((count / total) * 100) : 0;
               return `
-                <div class="result-row">
-                  <div class="result-row-label"><span class="opt">${val} ★</span><span class="stat">${count} (${pct}%)</span></div>
+                <div class="result-row" data-testid="result-row" data-option="${val}">
+                  <div class="result-row-label"><span class="opt">${val} ★</span><span class="stat" data-testid="result-stat">${count} (${pct}%)</span></div>
                   <div class="result-bar"><div class="result-bar-fill" style="width:${pct}%"></div></div>
                 </div>
               `;
@@ -1312,12 +1321,12 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         case "yesno": {
           const { yes, no, yesPct, noPct } = yesNoSplit(q.id, currentResponses);
           body = `
-            <div class="result-row">
-              <div class="result-row-label"><span class="opt">Yes</span><span class="stat">${yes} (${yesPct}%)</span></div>
+            <div class="result-row" data-testid="result-row" data-option="yes">
+              <div class="result-row-label"><span class="opt">Yes</span><span class="stat" data-testid="result-stat">${yes} (${yesPct}%)</span></div>
               <div class="result-bar"><div class="result-bar-fill" style="width:${yesPct}%"></div></div>
             </div>
-            <div class="result-row">
-              <div class="result-row-label"><span class="opt">No</span><span class="stat">${no} (${noPct}%)</span></div>
+            <div class="result-row" data-testid="result-row" data-option="no">
+              <div class="result-row-label"><span class="opt">No</span><span class="stat" data-testid="result-stat">${no} (${noPct}%)</span></div>
               <div class="result-bar"><div class="result-bar-fill" style="width:${noPct}%"></div></div>
             </div>
           `;
@@ -1334,11 +1343,11 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
                 ? `<div class="avatar-sm" style="background:var(--muted)">?</div>`
                 : `<div class="avatar-sm" style="background:${memberColor(r.member_id)}">${initial(name)}</div>`;
               return `
-                <div class="text-response">
+                <div class="text-response" data-testid="text-response">
                   ${avatarHtml}
                   <div>
-                    <div class="who">${esc(name)}</div>
-                    <div>${esc(r.answer)}</div>
+                    <div class="who" data-testid="response-author">${esc(name)}</div>
+                    <div data-testid="response-answer">${esc(r.answer)}</div>
                   </div>
                 </div>
               `;
@@ -1348,8 +1357,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         }
       }
       return `
-        <div class="result-block card card-body">
-          <div class="result-question">${esc(q.text)}</div>
+        <div class="result-block card card-body" data-testid="result-block" data-question-id="${q.id}">
+          <div class="result-question" data-testid="result-question">${esc(q.text)}</div>
           ${body}
         </div>
       `;
