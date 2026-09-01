@@ -27,8 +27,8 @@
   "storage": "db",
   "preload": {
     "surveys": {"sql": "SELECT * FROM app_surveys__surveys ORDER BY created_at DESC LIMIT 200"},
-    "questions": {"sql": "SELECT survey_id FROM app_surveys__questions"},
-    "response_receipts": {"sql": "SELECT survey_id, member_id FROM app_surveys__response_receipts"}
+    "questions": {"sql": "SELECT survey_id FROM app_surveys__questions WHERE survey_id IN (SELECT id FROM app_surveys__surveys ORDER BY created_at DESC LIMIT 200)"},
+    "response_receipts": {"sql": "SELECT survey_id, member_id FROM app_surveys__response_receipts WHERE survey_id IN (SELECT id FROM app_surveys__surveys ORDER BY created_at DESC LIMIT 200)"}
   },
   "row_policies": {
     "surveys": {

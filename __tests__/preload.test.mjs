@@ -32,4 +32,24 @@ describe("manifest.preload mirrors the app's first-render reads", () => {
       expect((sql.match(/\?/g) ?? []).length, `${name}: placeholders vs params`).toBe(params.length);
     }
   });
+
+  // Two preloads scope themselves with `survey_id IN (SELECT id FROM
+  // app_surveys__surveys ...)`. The row-policy rewriter fails closed on a
+  // governed table it has to inject a predicate into when that table is named
+  // only inside a subquery — those statements are legal solely because
+  // adult_writable WITHOUT a member_read_column appends nothing on a SELECT, so
+  // there is no predicate to inject. Adding one would not fail here or in
+  // contract-CI; it would make both preloads throw at runtime, which reads as
+  // "the survey list has no questions". Pinned so the precondition cannot be
+  // removed silently.
+  it("keeps the surveys policy read-unscoped, which the subquery preloads depend on", () => {
+    const subqueryPreloads = Object.entries(manifest.preload)
+      .filter(([, { sql }]) => /IN\s*\(\s*SELECT/i.test(sql))
+      .map(([name]) => name);
+    expect(subqueryPreloads.length, "expected the scoped child preloads").toBeGreaterThan(0);
+    expect(
+      manifest.row_policies.surveys.member_read_column,
+      `row_policies.surveys.member_read_column would break preload(s): ${subqueryPreloads.join(", ")} — rewrite them as JOINs first`,
+    ).toBeUndefined();
+  });
 });

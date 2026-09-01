@@ -593,15 +593,30 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     async function loadSurveys() {
       if (!DB) { buildDemoData(); return; }
 
-      // Row policies can't rewrite correlated subqueries on governed tables —
+      // Row policies can't rewrite CORRELATED subqueries on governed tables —
       // load each table top-level and aggregate client-side. The receipts
       // query is owner-filtered by policy, so counts reflect what the viewer
       // is allowed to see (i_responded checks the receipt table so it works
       // for both anonymous and non-anonymous surveys).
+      //
+      // The two child reads are scoped to the same 200 surveys the list shows.
+      // Both only feed per-survey badges ("N questions", "you responded"), so
+      // rows for surveys past the window were read on every launch and thrown
+      // away.
+      //
+      // The IN (SELECT …) is legal here for one specific reason, and it is not
+      // that subqueries are allowed: the rewriter still fails closed on a
+      // governed table it must inject a predicate into. `surveys` is
+      // adult_writable with NO member_read_column, and that combination appends
+      // nothing at all on a SELECT — everyone reads — so there is no predicate
+      // to inject and nothing to fail closed on. Adding a member_read_column to
+      // the surveys policy would silently break both statements below. Any
+      // policy that actually scopes reads (owner_only, owner_or_visibility)
+      // must use a JOIN instead, so both tables stay top-level.
       const [sRes, qRes, rRes] = await Promise.all([
         db(`SELECT * FROM app_surveys__surveys ORDER BY created_at DESC LIMIT 200`),
-        db(`SELECT survey_id FROM app_surveys__questions`),
-        db(`SELECT survey_id, member_id FROM app_surveys__response_receipts`),
+        db(`SELECT survey_id FROM app_surveys__questions WHERE survey_id IN (SELECT id FROM app_surveys__surveys ORDER BY created_at DESC LIMIT 200)`),
+        db(`SELECT survey_id, member_id FROM app_surveys__response_receipts WHERE survey_id IN (SELECT id FROM app_surveys__surveys ORDER BY created_at DESC LIMIT 200)`),
       ]);
       surveys = sRes.rows ?? [];
       questionCounts = new Map();
