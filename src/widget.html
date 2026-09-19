@@ -10,8 +10,8 @@
     body {
       font-family: var(--hub-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
       font-size: 13px;
-      background: #fff;
-      color: #111827;
+      background: var(--hub-surface, #fff);
+      color: var(--hub-text, #111827);
       height: 100vh;
       overflow: hidden;
       display: flex;
@@ -26,7 +26,7 @@
       border-bottom: 1px solid #e5e7eb;
       flex-shrink: 0;
     }
-    .header-count { font-size: 11px; color: #6b7280; }
+    .header-count { font-size: 11px; color: var(--hub-text-muted, #6b7280); }
 
     .survey-list {
       flex: 1;
@@ -45,7 +45,7 @@
       transition: background .1s;
     }
     .survey-row:last-child { border-bottom: none; }
-    .survey-row:hover { background: #f9fafb; }
+    .survey-row:hover { background: var(--hub-bg, #f9fafb); }
 
     .status-dot {
       width: 8px; height: 8px;
@@ -74,8 +74,8 @@
     .done-badge {
       font-size: 10px;
       font-weight: 700;
-      color: #059669;
-      background: #d1fae5;
+      color: var(--hub-tint-success-fg, #059669);
+      background: var(--hub-tint-success, #d1fae5);
       padding: 1px 5px;
       border-radius: 10px;
       flex-shrink: 0;
@@ -83,8 +83,8 @@
     .respond-badge {
       font-size: 10px;
       font-weight: 700;
-      color: #d97706;
-      background: #fef3c7;
+      color: var(--hub-tint-warning-fg, #d97706);
+      background: var(--hub-tint-warning, #fef3c7);
       padding: 1px 5px;
       border-radius: 10px;
       flex-shrink: 0;
@@ -97,7 +97,7 @@
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
-      background: #f9fafb;
+      background: var(--hub-bg, #f9fafb);
     }
     .new-link {
       font-size: 11px;
@@ -111,7 +111,7 @@
     .open-link {
       font-size: 11px;
       font-weight: 600;
-      color: #111827;
+      color: var(--hub-text, #111827);
       text-decoration: none;
     }
     .open-link:hover { text-decoration: underline; }
