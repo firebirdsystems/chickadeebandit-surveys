@@ -1,6 +1,6 @@
 # Surveys
 
-A [Chickadee Bandit](http://chickadeebandit.com) app.
+A [Chickadee Bandit](https://chickadeebandit.com/app-library/surveys) app.
 
 Multi-question surveys for household decisions, trip planning, and feedback — text, multiple choice, rating scale, and yes/no questions, with results revealed once the survey closes.
 
