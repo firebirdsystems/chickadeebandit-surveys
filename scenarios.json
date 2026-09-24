@@ -1,0 +1,299 @@
+{
+  "scenarios": [
+    {
+      "name": "individual answers are sealed from every member and cannot be written directly; each member sees only their own receipt",
+      "members": {
+        "a": "adult",
+        "b": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__surveys (id, title, status, anonymous, created_by, created_at) VALUES ('s1', 'Trip feedback', 'open', 1, ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{a}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES ('q1', 's1', 'Rate the trip', 'rating', '[]', 0)"
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES ('r_a', 's1', 'q1', NULL, '5', '2026-01-01T00:00:00Z'), ('r_b', 's1', 'q1', NULL, '2', '2026-01-01T00:00:00Z')"
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES ('s1', ?, '2026-01-01T00:00:00Z'), ('s1', ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{a}}",
+            "{{b}}"
+          ]
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "SELECT id, answer FROM app_surveys__responses WHERE survey_id = 's1'",
+          "expect": {
+            "status": 403
+          }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES ('r_forged', 's1', 'q1', NULL, '1', '2026-01-01T00:00:00Z')",
+          "expect": {
+            "status": 403,
+            "errorIncludes": "endpoint"
+          }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "SELECT survey_id, member_id FROM app_surveys__response_receipts",
+          "expect": {
+            "status": 200,
+            "rowCount": 1,
+            "rowsContain": [
+              {
+                "survey_id": "s1"
+              }
+            ]
+          }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "SELECT member_id FROM app_surveys__response_receipts WHERE member_id = ?",
+          "params": [
+            "{{b}}"
+          ],
+          "expect": {
+            "status": 200,
+            "rowCount": 0
+          }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES ('s2', ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{b}}"
+          ],
+          "expect": {
+            "status": 403
+          }
+        }
+      ]
+    },
+    {
+      "name": "adults create surveys and questions; a child can read but not author them",
+      "members": {
+        "parent": "adult",
+        "kid": "child"
+      },
+      "steps": [
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "INSERT INTO app_surveys__surveys (id, title, status, anonymous, created_by, created_at) VALUES ('s_kid', 'Kid survey', 'open', 0, ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{kid}}"
+          ],
+          "expect": {
+            "status": 403
+          }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_surveys__surveys (id, title, status, anonymous, created_by, created_at) VALUES ('s1', 'Dinner ideas', 'open', 0, ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{parent}}"
+          ],
+          "expect": {
+            "status": 200
+          }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES ('q_kid', 's1', 'Pizza every night?', 'yes_no', '[]', 0)",
+          "expect": {
+            "status": 403
+          }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES ('q1', 's1', 'Favorite dinner?', 'text', '[]', 0), ('q2', 's1', 'Rate this week', 'rating', '[]', 1)",
+          "expect": {
+            "status": 200
+          }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "SELECT id FROM app_surveys__surveys",
+          "expect": {
+            "status": 200,
+            "rowCount": 1,
+            "rowsContain": [
+              {
+                "id": "s1"
+              }
+            ]
+          }
+        },
+        {
+          "action": "named",
+          "as": "parent",
+          "kind": "query",
+          "name": "open_surveys",
+          "expect": {
+            "status": 200,
+            "rowCount": 1,
+            "rowsContain": [
+              {
+                "id": "s1",
+                "title": "Dinner ideas",
+                "question_count": 2
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "a closed survey is frozen, and an existing survey's anonymity cannot be flipped",
+      "members": {
+        "parent": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__surveys (id, title, status, anonymous, created_by, created_at, closed_at) VALUES ('s_open', 'Open one', 'open', 1, ?, '2026-01-01T00:00:00Z', NULL), ('s_closed', 'Closed one', 'closed', 0, ?, '2026-01-01T00:00:00Z', '2026-01-03T00:00:00Z')",
+          "params": [
+            "{{parent}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "UPDATE app_surveys__surveys SET title = 'Rewritten' WHERE id = 's_closed'"
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "UPDATE app_surveys__surveys SET anonymous = 0 WHERE id = 's_open'"
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "UPDATE app_surveys__surveys SET title = 'Open one, renamed' WHERE id = 's_open'",
+          "expect": {
+            "status": 200
+          }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT id, title, anonymous FROM app_surveys__surveys",
+          "expect": {
+            "status": 200,
+            "rowCount": 2,
+            "rowsContain": [
+              {
+                "id": "s_open",
+                "title": "Open one, renamed",
+                "anonymous": 1
+              },
+              {
+                "id": "s_closed",
+                "title": "Closed one"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "only adults may announce survey.created and survey.closed",
+      "members": {
+        "parent": "adult",
+        "kid": "child"
+      },
+      "steps": [
+        {
+          "action": "publish",
+          "as": "kid",
+          "type": "survey.created",
+          "subject_id": "s1",
+          "payload": {
+            "title": "Dinner ideas"
+          },
+          "expect": {
+            "status": 403
+          }
+        },
+        {
+          "action": "publish",
+          "as": "kid",
+          "type": "survey.closed",
+          "subject_id": "s1",
+          "payload": {
+            "title": "Dinner ideas"
+          },
+          "expect": {
+            "status": 403
+          }
+        },
+        {
+          "action": "publish",
+          "as": "parent",
+          "type": "survey.created",
+          "subject_id": "s1",
+          "payload": {
+            "title": "Dinner ideas"
+          },
+          "expect": {
+            "status": 201
+          }
+        }
+      ]
+    },
+    {
+      "name": "the closed_surveys AI export lists closed surveys only",
+      "members": {
+        "parent": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closed_at) VALUES ('s-open', 'Dinner ideas', '', 'open', 0, ?, '2026-01-01T00:00:00Z', NULL), ('s-closed', 'Vacation', '', 'closed', 0, ?, '2026-01-01T00:00:00Z', '2026-01-05T00:00:00Z')",
+          "params": [
+            "{{parent}}",
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "named",
+          "as": "parent",
+          "kind": "query",
+          "name": "closed_surveys",
+          "expect": {
+            "status": 200,
+            "rowCount": 1,
+            "rowsContain": [
+              {
+                "id": "s-closed",
+                "title": "Vacation"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
