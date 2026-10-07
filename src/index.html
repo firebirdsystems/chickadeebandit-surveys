@@ -182,7 +182,7 @@
 
     /* ── Empty state ────────────────────────────────────── */
     .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
-    .empty .icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .empty .icon { margin-bottom: 10px; }
     .empty h3 { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
     .empty p { font-size: 0.85rem; line-height: 1.6; }
     .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 0.9rem; }
@@ -335,7 +335,7 @@
       text-align: center;
       padding: 32px 20px;
     }
-    .waiting-card .icon { font-size: 2rem; margin-bottom: 10px; }
+    .waiting-card .icon { margin-bottom: 10px; }
     .waiting-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
     .waiting-card p { font-size: 0.85rem; color: var(--muted); }
 
@@ -450,7 +450,7 @@
 
   <script type="module">
     import {
-      hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate, searchMatch,
+      hubAlert, memberColor, initial, esc, isAdult, formatRelativeDate, searchMatch, glyph, chickadee,
     } from "/hub-sdk.js";
     import {
       surveyStatus, isSurveyOpen, hasResponded, responseCount, canManage,
@@ -937,7 +937,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           ${q.options.map((opt, oi) => `
             <div class="option-row">
               <input type="text" data-testid="field-option" data-question-index="${i}" data-option-index="${oi}" value="${esc(opt)}" placeholder="Option ${oi + 1}" oninput="updateOption(${i}, ${oi}, this.value)" />
-              ${q.options.length > 2 ? `<button data-testid="remove-option" data-question-index="${i}" data-option-index="${oi}" onclick="removeOption(${i}, ${oi})" title="Remove option">✕</button>` : ""}
+              ${q.options.length > 2 ? `<button data-testid="remove-option" data-question-index="${i}" data-option-index="${oi}" onclick="removeOption(${i}, ${oi})" title="Remove option" aria-label="Remove option">${glyph("close")}</button>` : ""}
             </div>
           `).join("")}
           ${q.options.length < 5 ? `<button class="btn btn-ghost btn-sm" data-testid="add-option" data-question-index="${i}" onclick="addOption(${i})">+ Add option</button>` : ""}
@@ -948,7 +948,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         <div class="question-draft" data-testid="question-draft" data-question-index="${i}">
           <div class="question-draft-header">
             <span class="num">Question ${i + 1}</span>
-            ${surveyForm.questions.length > 1 ? `<button class="remove-q-btn" data-testid="remove-question" data-question-index="${i}" onclick="removeQuestion(${i})" title="Remove question">✕</button>` : ""}
+            ${surveyForm.questions.length > 1 ? `<button class="remove-q-btn" data-testid="remove-question" data-question-index="${i}" onclick="removeQuestion(${i})" title="Remove question" aria-label="Remove question">${glyph("close")}</button>` : ""}
           </div>
           <div class="form-group">
             <input type="text" data-testid="field-question-text" data-question-index="${i}" value="${esc(q.text)}" placeholder="Question text" oninput="updateQuestionText(${i}, this.value)" />
@@ -1124,12 +1124,12 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
       const cards = list.length === 0 ? (searchQ ? `
         <div class="empty" data-testid="empty-state">
-          <div class="icon">🔍</div>
+          <div class="icon">${chickadee("searching")}</div>
           <h3>No surveys match "${esc(searchQ)}"</h3>
         </div>
       ` : `
         <div class="empty" data-testid="empty-state">
-          <div class="icon">📋</div>
+          <div class="icon">${chickadee(listTab === "active" ? "nest" : "sleeping")}</div>
           <h3>${listTab === "active" ? "No active surveys" : "No closed surveys"}</h3>
           <p>${listTab === "active" ? "Create a survey to start collecting responses." : "Closed surveys with results will appear here."}</p>
         </div>
@@ -1137,7 +1137,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
       return `
         <div class="page-header">
-          <h1>📋 Surveys</h1>
+          <h1>${glyph("survey")} Surveys</h1>
           ${createBtn}
         </div>
         <div class="tabs">
@@ -1168,7 +1168,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       if (isSurveyOpen(s)) badges.push(`<span class="badge badge-open">Open</span>`);
       else badges.push(`<span class="badge badge-closed">Closed</span>`);
       if (s.anonymous) badges.push(`<span class="badge badge-anon">Anonymous</span>`);
-      if (responded) badges.push(`<span class="badge badge-done">You responded ✓</span>`);
+      if (responded) badges.push(`<span class="badge badge-done">You responded ${glyph("tick")}</span>`);
       if (s.closes_at && isSurveyOpen(s)) {
         badges.push(`<span class="badge badge-closed">Closes ${esc(formatDeadline(s.closes_at))}</span>`);
       }
@@ -1274,7 +1274,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             ${closeBtn}
           </div>
           <div class="card waiting-card" data-testid="waiting-card">
-            <div class="icon">✅</div>
+            <div class="icon">${chickadee("waiting")}</div>
             <h3>Thanks for responding!</h3>
             <p>Results will be shown once the survey closes.<br>${rCount} of ${total} members have responded so far.</p>
           </div>

@@ -130,7 +130,7 @@
 </head>
 <body>
 <script type="module">
-import { esc, formatRelativeDate } from "/hub-sdk.js";
+import { esc, formatRelativeDate, glyph } from "/hub-sdk.js";
 import { orderSurveysForWidget } from "./logic.js";
 
 const DB         = window.__DB_URL         ?? "";
@@ -214,7 +214,7 @@ function render(surveys) {
               <div class="survey-meta">${qs} question${qs !== 1 ? "s" : ""} · ${formatRelativeDate(s.created_at)}</div>
             </div>
             ${s.responded
-              ? `<span class="done-badge">✓ Done</span>`
+              ? `<span class="done-badge">${glyph("tick")} Done</span>`
               : `<span class="respond-badge">Respond →</span>`}
           </a>`;
       }).join("")}
