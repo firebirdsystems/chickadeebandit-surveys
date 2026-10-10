@@ -1,0 +1,1894 @@
+{
+  "seed": [
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closes_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT18:00','now','+5 days'))",
+      "params": [
+        "perf-sv-01",
+        "Where should we go for fall break?",
+        "Three days, driving distance. Vote before Friday.",
+        "open",
+        0,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-001",
+        "perf-sv-01",
+        "Which trip sounds best?",
+        "choice",
+        "[\"Cabin in the mountains\", \"Beach house\", \"City weekend\", \"Stay home and do day trips\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-002",
+        "perf-sv-01",
+        "How excited are you about a long car ride?",
+        "rating",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-003",
+        "perf-sv-01",
+        "Should we bring the dog?",
+        "yesno",
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-004",
+        "perf-sv-01",
+        "Anything you really want to do there?",
+        "text",
+        "[]",
+        3
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+0 minutes'))",
+      "params": [
+        "perf-sv-01",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+7 minutes'))",
+      "params": [
+        "perf-sv-01",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days','+1 minutes'))",
+      "params": [
+        "perf-sv-02",
+        "Dinner rotation check-in",
+        "Which meals should stay in the weekly rotation?",
+        "open",
+        0,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-005",
+        "perf-sv-02",
+        "Favourite weeknight dinner right now?",
+        "choice",
+        "[\"Tacos\", \"Pasta bake\", \"Stir fry\", \"Breakfast for dinner\", \"Soup and bread\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-006",
+        "perf-sv-02",
+        "How are we doing on trying new recipes?",
+        "rating",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-007",
+        "perf-sv-02",
+        "Keep Friday pizza night?",
+        "yesno",
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-3 days','+0 minutes'))",
+      "params": [
+        "perf-sv-02",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-3 days','+7 minutes'))",
+      "params": [
+        "perf-sv-02",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-3 days','+14 minutes'))",
+      "params": [
+        "perf-sv-02",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closes_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-6 days','+2 minutes'), strftime('%Y-%m-%dT18:00','now','+3 days'))",
+      "params": [
+        "perf-sv-03",
+        "How is the new chore chart working?",
+        "Honest answers only. Nobody sees who said what.",
+        "open",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-008",
+        "perf-sv-03",
+        "Is the chore split fair?",
+        "yesno",
+        "[]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-009",
+        "perf-sv-03",
+        "Rate the new chart",
+        "rating",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-010",
+        "perf-sv-03",
+        "What should we change?",
+        "text",
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+0 minutes'))",
+      "params": [
+        "perf-sv-03",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+7 minutes'))",
+      "params": [
+        "perf-sv-03",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closes_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-8 days','+3 minutes'), strftime('%Y-%m-%dT18:00','now','+12 days'))",
+      "params": [
+        "perf-sv-04",
+        "Holiday plans",
+        "Sorting out who hosts what this year.",
+        "open",
+        0,
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-011",
+        "perf-sv-04",
+        "Where should we spend the big dinner?",
+        "choice",
+        "[\"Our house\", \"Grandma's\", \"Aunt Carol's\", \"Restaurant\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-012",
+        "perf-sv-04",
+        "Do a gift exchange instead of gifts for everyone?",
+        "yesno",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-013",
+        "perf-sv-04",
+        "How much travel are you up for?",
+        "rating",
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-014",
+        "perf-sv-04",
+        "Dishes you are hoping to see on the table",
+        "text",
+        "[]",
+        3
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-7 days','+0 minutes'))",
+      "params": [
+        "perf-sv-04",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+4 minutes'))",
+      "params": [
+        "perf-sv-05",
+        "Screen time rules review",
+        "Checking in on the weekday limits.",
+        "open",
+        1,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-015",
+        "perf-sv-05",
+        "Are the weekday limits about right?",
+        "choice",
+        "[\"Too strict\", \"About right\", \"Too loose\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-016",
+        "perf-sv-05",
+        "Rate how the new rules feel",
+        "rating",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-017",
+        "perf-sv-05",
+        "One thing you would change",
+        "text",
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-9 days','+0 minutes'))",
+      "params": [
+        "perf-sv-05",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-9 days','+7 minutes'))",
+      "params": [
+        "perf-sv-05",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closes_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+5 minutes'), strftime('%Y-%m-%dT18:00','now','+2 days'))",
+      "params": [
+        "perf-sv-06",
+        "Weekend activity vote",
+        "Saturday is wide open.",
+        "open",
+        0,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-018",
+        "perf-sv-06",
+        "What should we do Saturday?",
+        "choice",
+        "[\"Hike\", \"Bike ride\", \"Museum\", \"Board game day\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-019",
+        "perf-sv-06",
+        "Invite friends along?",
+        "yesno",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','+0 days','-3 minutes'))",
+      "params": [
+        "perf-sv-06",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+6 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-41 days','+0 minutes'))",
+      "params": [
+        "perf-sv-07",
+        "Summer camp feedback",
+        "How did camp go this year?",
+        "closed",
+        0,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-020",
+        "perf-sv-07",
+        "Would you go back next summer?",
+        "yesno",
+        "[]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-021",
+        "perf-sv-07",
+        "Rate the camp overall",
+        "rating",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-022",
+        "perf-sv-07",
+        "Best part of camp?",
+        "choice",
+        "[\"Swimming\", \"Crafts\", \"Campfire nights\", \"New friends\"]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-023",
+        "perf-sv-07",
+        "Anything that should be different next time?",
+        "text",
+        "[]",
+        3
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+0 minutes'))",
+      "params": [
+        "perf-sv-07",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+0 minutes'))",
+      "params": [
+        "perf-r-001",
+        "perf-sv-07",
+        "perf-q-020",
+        "{{me}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+0 minutes'))",
+      "params": [
+        "perf-r-002",
+        "perf-sv-07",
+        "perf-q-021",
+        "{{me}}",
+        "4"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+0 minutes'))",
+      "params": [
+        "perf-r-003",
+        "perf-sv-07",
+        "perf-q-022",
+        "{{me}}",
+        "Swimming"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+0 minutes'))",
+      "params": [
+        "perf-r-004",
+        "perf-sv-07",
+        "perf-q-023",
+        "{{me}}",
+        "Less driving, more staying put."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+7 minutes'))",
+      "params": [
+        "perf-sv-07",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+7 minutes'))",
+      "params": [
+        "perf-r-005",
+        "perf-sv-07",
+        "perf-q-020",
+        "{{partner}}",
+        "no"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+7 minutes'))",
+      "params": [
+        "perf-r-006",
+        "perf-sv-07",
+        "perf-q-021",
+        "{{partner}}",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+7 minutes'))",
+      "params": [
+        "perf-r-007",
+        "perf-sv-07",
+        "perf-q-022",
+        "{{partner}}",
+        "Campfire nights"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+7 minutes'))",
+      "params": [
+        "perf-r-008",
+        "perf-sv-07",
+        "perf-q-023",
+        "{{partner}}",
+        "Rotate who decides each week."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+14 minutes'))",
+      "params": [
+        "perf-sv-07",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+14 minutes'))",
+      "params": [
+        "perf-r-009",
+        "perf-sv-07",
+        "perf-q-020",
+        "{{adult2}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+14 minutes'))",
+      "params": [
+        "perf-r-010",
+        "perf-sv-07",
+        "perf-q-021",
+        "{{adult2}}",
+        "3"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+14 minutes'))",
+      "params": [
+        "perf-r-011",
+        "perf-sv-07",
+        "perf-q-022",
+        "{{adult2}}",
+        "Swimming"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+14 minutes'))",
+      "params": [
+        "perf-r-012",
+        "perf-sv-07",
+        "perf-q-023",
+        "{{adult2}}",
+        "Bring snacks. Always bring snacks."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+21 minutes'))",
+      "params": [
+        "perf-sv-07",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+21 minutes'))",
+      "params": [
+        "perf-r-013",
+        "perf-sv-07",
+        "perf-q-020",
+        "{{child}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+21 minutes'))",
+      "params": [
+        "perf-r-014",
+        "perf-sv-07",
+        "perf-q-021",
+        "{{child}}",
+        "4"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+21 minutes'))",
+      "params": [
+        "perf-r-015",
+        "perf-sv-07",
+        "perf-q-022",
+        "{{child}}",
+        "Campfire nights"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+21 minutes'))",
+      "params": [
+        "perf-r-016",
+        "perf-sv-07",
+        "perf-q-023",
+        "{{child}}",
+        "More time outside, fewer errands."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+28 minutes'))",
+      "params": [
+        "perf-sv-07",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+28 minutes'))",
+      "params": [
+        "perf-r-017",
+        "perf-sv-07",
+        "perf-q-020",
+        "{{child2}}",
+        "no"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+28 minutes'))",
+      "params": [
+        "perf-r-018",
+        "perf-sv-07",
+        "perf-q-021",
+        "{{child2}}",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+28 minutes'))",
+      "params": [
+        "perf-r-019",
+        "perf-sv-07",
+        "perf-q-022",
+        "{{child2}}",
+        "Swimming"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+28 minutes'))",
+      "params": [
+        "perf-r-020",
+        "perf-sv-07",
+        "perf-q-023",
+        "{{child2}}",
+        "Start earlier so we are not rushed."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+7 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-28 days','+0 minutes'))",
+      "params": [
+        "perf-sv-08",
+        "Family movie night picks",
+        "Building the list for the next two months.",
+        "closed",
+        0,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-024",
+        "perf-sv-08",
+        "Favourite genre?",
+        "choice",
+        "[\"Animated\", \"Adventure\", \"Comedy\", \"Mystery\", \"Documentary\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-025",
+        "perf-sv-08",
+        "How was the last pick?",
+        "rating",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-026",
+        "perf-sv-08",
+        "Popcorn or candy?",
+        "choice",
+        "[\"Popcorn\", \"Candy\", \"Both\"]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+0 minutes'))",
+      "params": [
+        "perf-sv-08",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+0 minutes'))",
+      "params": [
+        "perf-r-021",
+        "perf-sv-08",
+        "perf-q-024",
+        "{{me}}",
+        "Comedy"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+0 minutes'))",
+      "params": [
+        "perf-r-022",
+        "perf-sv-08",
+        "perf-q-025",
+        "{{me}}",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+0 minutes'))",
+      "params": [
+        "perf-r-023",
+        "perf-sv-08",
+        "perf-q-026",
+        "{{me}}",
+        "Popcorn"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+7 minutes'))",
+      "params": [
+        "perf-sv-08",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+7 minutes'))",
+      "params": [
+        "perf-r-024",
+        "perf-sv-08",
+        "perf-q-024",
+        "{{partner}}",
+        "Documentary"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+7 minutes'))",
+      "params": [
+        "perf-r-025",
+        "perf-sv-08",
+        "perf-q-025",
+        "{{partner}}",
+        "3"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+7 minutes'))",
+      "params": [
+        "perf-r-026",
+        "perf-sv-08",
+        "perf-q-026",
+        "{{partner}}",
+        "Both"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+14 minutes'))",
+      "params": [
+        "perf-sv-08",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+14 minutes'))",
+      "params": [
+        "perf-r-027",
+        "perf-sv-08",
+        "perf-q-024",
+        "{{child}}",
+        "Adventure"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+14 minutes'))",
+      "params": [
+        "perf-r-028",
+        "perf-sv-08",
+        "perf-q-025",
+        "{{child}}",
+        "4"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+14 minutes'))",
+      "params": [
+        "perf-r-029",
+        "perf-sv-08",
+        "perf-q-026",
+        "{{child}}",
+        "Candy"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+21 minutes'))",
+      "params": [
+        "perf-sv-08",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+21 minutes'))",
+      "params": [
+        "perf-r-030",
+        "perf-sv-08",
+        "perf-q-024",
+        "{{child2}}",
+        "Mystery"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+21 minutes'))",
+      "params": [
+        "perf-r-031",
+        "perf-sv-08",
+        "perf-q-025",
+        "{{child2}}",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+21 minutes'))",
+      "params": [
+        "perf-r-032",
+        "perf-sv-08",
+        "perf-q-026",
+        "{{child2}}",
+        "Popcorn"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-62 days','+8 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-55 days','+0 minutes'))",
+      "params": [
+        "perf-sv-09",
+        "Allowance check-in",
+        "Is the current allowance setup working?",
+        "closed",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-027",
+        "perf-sv-09",
+        "Is the amount fair for the chores?",
+        "yesno",
+        "[]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-028",
+        "perf-sv-09",
+        "Rate the current system",
+        "rating",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-029",
+        "perf-sv-09",
+        "What would make it better?",
+        "text",
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+0 minutes'))",
+      "params": [
+        "perf-sv-09",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+0 minutes'))",
+      "params": [
+        "perf-r-033",
+        "perf-sv-09",
+        "perf-q-027",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+0 minutes'))",
+      "params": [
+        "perf-r-034",
+        "perf-sv-09",
+        "perf-q-028",
+        "3"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+0 minutes'))",
+      "params": [
+        "perf-r-035",
+        "perf-sv-09",
+        "perf-q-029",
+        "Honestly it is fine the way it is."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+7 minutes'))",
+      "params": [
+        "perf-sv-09",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+7 minutes'))",
+      "params": [
+        "perf-r-036",
+        "perf-sv-09",
+        "perf-q-027",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+7 minutes'))",
+      "params": [
+        "perf-r-037",
+        "perf-sv-09",
+        "perf-q-028",
+        "4"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+7 minutes'))",
+      "params": [
+        "perf-r-038",
+        "perf-sv-09",
+        "perf-q-029",
+        "Let the kids pick one thing each."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+14 minutes'))",
+      "params": [
+        "perf-sv-09",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+14 minutes'))",
+      "params": [
+        "perf-r-039",
+        "perf-sv-09",
+        "perf-q-027",
+        "no"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+14 minutes'))",
+      "params": [
+        "perf-r-040",
+        "perf-sv-09",
+        "perf-q-028",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+14 minutes'))",
+      "params": [
+        "perf-r-041",
+        "perf-sv-09",
+        "perf-q-029",
+        "A clearer list on the fridge would help."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+21 minutes'))",
+      "params": [
+        "perf-sv-09",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+21 minutes'))",
+      "params": [
+        "perf-r-042",
+        "perf-sv-09",
+        "perf-q-027",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+21 minutes'))",
+      "params": [
+        "perf-r-043",
+        "perf-sv-09",
+        "perf-q-028",
+        "3"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+21 minutes'))",
+      "params": [
+        "perf-r-044",
+        "perf-sv-09",
+        "perf-q-029",
+        "Less driving, more staying put."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+28 minutes'))",
+      "params": [
+        "perf-sv-09",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+28 minutes'))",
+      "params": [
+        "perf-r-045",
+        "perf-sv-09",
+        "perf-q-027",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+28 minutes'))",
+      "params": [
+        "perf-r-046",
+        "perf-sv-09",
+        "perf-q-028",
+        "4"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, answer, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+28 minutes'))",
+      "params": [
+        "perf-r-047",
+        "perf-sv-09",
+        "perf-q-029",
+        "Rotate who decides each week."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-75 days','+9 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-68 days','+0 minutes'))",
+      "params": [
+        "perf-sv-10",
+        "Back-to-school routine",
+        "Mornings have been rough. Ideas welcome.",
+        "closed",
+        0,
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-030",
+        "perf-sv-10",
+        "What time should lights-out be?",
+        "choice",
+        "[\"8:00\", \"8:30\", \"9:00\", \"9:30\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-031",
+        "perf-sv-10",
+        "Pack lunches the night before?",
+        "yesno",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-032",
+        "perf-sv-10",
+        "How are mornings going?",
+        "rating",
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-033",
+        "perf-sv-10",
+        "What would make mornings easier?",
+        "text",
+        "[]",
+        3
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+0 minutes'))",
+      "params": [
+        "perf-sv-10",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+0 minutes'))",
+      "params": [
+        "perf-r-048",
+        "perf-sv-10",
+        "perf-q-030",
+        "{{me}}",
+        "8:30"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+0 minutes'))",
+      "params": [
+        "perf-r-049",
+        "perf-sv-10",
+        "perf-q-031",
+        "{{me}}",
+        "no"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+0 minutes'))",
+      "params": [
+        "perf-r-050",
+        "perf-sv-10",
+        "perf-q-032",
+        "{{me}}",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+0 minutes'))",
+      "params": [
+        "perf-r-051",
+        "perf-sv-10",
+        "perf-q-033",
+        "{{me}}",
+        "Rotate who decides each week."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+7 minutes'))",
+      "params": [
+        "perf-sv-10",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+7 minutes'))",
+      "params": [
+        "perf-r-052",
+        "perf-sv-10",
+        "perf-q-030",
+        "{{partner}}",
+        "9:30"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+7 minutes'))",
+      "params": [
+        "perf-r-053",
+        "perf-sv-10",
+        "perf-q-031",
+        "{{partner}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+7 minutes'))",
+      "params": [
+        "perf-r-054",
+        "perf-sv-10",
+        "perf-q-032",
+        "{{partner}}",
+        "3"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+7 minutes'))",
+      "params": [
+        "perf-r-055",
+        "perf-sv-10",
+        "perf-q-033",
+        "{{partner}}",
+        "Bring snacks. Always bring snacks."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+14 minutes'))",
+      "params": [
+        "perf-sv-10",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+14 minutes'))",
+      "params": [
+        "perf-r-056",
+        "perf-sv-10",
+        "perf-q-030",
+        "{{child}}",
+        "8:30"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+14 minutes'))",
+      "params": [
+        "perf-r-057",
+        "perf-sv-10",
+        "perf-q-031",
+        "{{child}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+14 minutes'))",
+      "params": [
+        "perf-r-058",
+        "perf-sv-10",
+        "perf-q-032",
+        "{{child}}",
+        "4"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+14 minutes'))",
+      "params": [
+        "perf-r-059",
+        "perf-sv-10",
+        "perf-q-033",
+        "{{child}}",
+        "More time outside, fewer errands."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+21 minutes'))",
+      "params": [
+        "perf-sv-10",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+21 minutes'))",
+      "params": [
+        "perf-r-060",
+        "perf-sv-10",
+        "perf-q-030",
+        "{{child2}}",
+        "9:30"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+21 minutes'))",
+      "params": [
+        "perf-r-061",
+        "perf-sv-10",
+        "perf-q-031",
+        "{{child2}}",
+        "no"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+21 minutes'))",
+      "params": [
+        "perf-r-062",
+        "perf-sv-10",
+        "perf-q-032",
+        "{{child2}}",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+21 minutes'))",
+      "params": [
+        "perf-r-063",
+        "perf-sv-10",
+        "perf-q-033",
+        "{{child2}}",
+        "Start earlier so we are not rushed."
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-170 days','+10 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-163 days','+0 minutes'))",
+      "params": [
+        "perf-sv-11",
+        "Spring break recap",
+        "Looking back at the road trip.",
+        "closed",
+        0,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-034",
+        "perf-sv-11",
+        "Rate the trip",
+        "rating",
+        "[]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-035",
+        "perf-sv-11",
+        "Do the same trip again?",
+        "yesno",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-036",
+        "perf-sv-11",
+        "Best stop?",
+        "choice",
+        "[\"The caves\", \"The lake\", \"The diner\", \"The bookstore\"]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+0 minutes'))",
+      "params": [
+        "perf-sv-11",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+0 minutes'))",
+      "params": [
+        "perf-r-064",
+        "perf-sv-11",
+        "perf-q-034",
+        "{{me}}",
+        "4"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+0 minutes'))",
+      "params": [
+        "perf-r-065",
+        "perf-sv-11",
+        "perf-q-035",
+        "{{me}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+0 minutes'))",
+      "params": [
+        "perf-r-066",
+        "perf-sv-11",
+        "perf-q-036",
+        "{{me}}",
+        "The caves"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+7 minutes'))",
+      "params": [
+        "perf-sv-11",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+7 minutes'))",
+      "params": [
+        "perf-r-067",
+        "perf-sv-11",
+        "perf-q-034",
+        "{{partner}}",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+7 minutes'))",
+      "params": [
+        "perf-r-068",
+        "perf-sv-11",
+        "perf-q-035",
+        "{{partner}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+7 minutes'))",
+      "params": [
+        "perf-r-069",
+        "perf-sv-11",
+        "perf-q-036",
+        "{{partner}}",
+        "The diner"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+14 minutes'))",
+      "params": [
+        "perf-sv-11",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+14 minutes'))",
+      "params": [
+        "perf-r-070",
+        "perf-sv-11",
+        "perf-q-034",
+        "{{adult2}}",
+        "3"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+14 minutes'))",
+      "params": [
+        "perf-r-071",
+        "perf-sv-11",
+        "perf-q-035",
+        "{{adult2}}",
+        "no"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+14 minutes'))",
+      "params": [
+        "perf-r-072",
+        "perf-sv-11",
+        "perf-q-036",
+        "{{adult2}}",
+        "The caves"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+21 minutes'))",
+      "params": [
+        "perf-sv-11",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+21 minutes'))",
+      "params": [
+        "perf-r-073",
+        "perf-sv-11",
+        "perf-q-034",
+        "{{child}}",
+        "4"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+21 minutes'))",
+      "params": [
+        "perf-r-074",
+        "perf-sv-11",
+        "perf-q-035",
+        "{{child}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+21 minutes'))",
+      "params": [
+        "perf-r-075",
+        "perf-sv-11",
+        "perf-q-036",
+        "{{child}}",
+        "The diner"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+28 minutes'))",
+      "params": [
+        "perf-sv-11",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+28 minutes'))",
+      "params": [
+        "perf-r-076",
+        "perf-sv-11",
+        "perf-q-034",
+        "{{child2}}",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+28 minutes'))",
+      "params": [
+        "perf-r-077",
+        "perf-sv-11",
+        "perf-q-035",
+        "{{child2}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-169 days','+28 minutes'))",
+      "params": [
+        "perf-r-078",
+        "perf-sv-11",
+        "perf-q-036",
+        "{{child2}}",
+        "The caves"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-120 days','+11 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-113 days','+0 minutes'))",
+      "params": [
+        "perf-sv-12",
+        "Pet name vote",
+        "The new kitten needs a name.",
+        "closed",
+        0,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-037",
+        "perf-sv-12",
+        "Pick a name",
+        "choice",
+        "[\"Biscuit\", \"Mango\", \"Pepper\", \"Olive\", \"Ziggy\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-038",
+        "perf-sv-12",
+        "Happy with the shortlist?",
+        "yesno",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+0 minutes'))",
+      "params": [
+        "perf-sv-12",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+0 minutes'))",
+      "params": [
+        "perf-r-079",
+        "perf-sv-12",
+        "perf-q-037",
+        "{{me}}",
+        "Mango"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+0 minutes'))",
+      "params": [
+        "perf-r-080",
+        "perf-sv-12",
+        "perf-q-038",
+        "{{me}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+7 minutes'))",
+      "params": [
+        "perf-sv-12",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+7 minutes'))",
+      "params": [
+        "perf-r-081",
+        "perf-sv-12",
+        "perf-q-037",
+        "{{partner}}",
+        "Olive"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+7 minutes'))",
+      "params": [
+        "perf-r-082",
+        "perf-sv-12",
+        "perf-q-038",
+        "{{partner}}",
+        "no"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+14 minutes'))",
+      "params": [
+        "perf-sv-12",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+14 minutes'))",
+      "params": [
+        "perf-r-083",
+        "perf-sv-12",
+        "perf-q-037",
+        "{{child}}",
+        "Biscuit"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+14 minutes'))",
+      "params": [
+        "perf-r-084",
+        "perf-sv-12",
+        "perf-q-038",
+        "{{child}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+21 minutes'))",
+      "params": [
+        "perf-sv-12",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+21 minutes'))",
+      "params": [
+        "perf-r-085",
+        "perf-sv-12",
+        "perf-q-037",
+        "{{child2}}",
+        "Pepper"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-119 days','+21 minutes'))",
+      "params": [
+        "perf-r-086",
+        "perf-sv-12",
+        "perf-q-038",
+        "{{child2}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closed_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-200 days','+12 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-193 days','+0 minutes'))",
+      "params": [
+        "perf-sv-13",
+        "Garden plans",
+        "What goes in the raised beds this year?",
+        "closed",
+        0,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-039",
+        "perf-sv-13",
+        "Main crop?",
+        "choice",
+        "[\"Tomatoes\", \"Beans\", \"Squash\", \"Strawberries\"]",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-040",
+        "perf-sv-13",
+        "Add a herb bed?",
+        "yesno",
+        "[]",
+        1
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?)",
+      "params": [
+        "perf-q-041",
+        "perf-sv-13",
+        "How much weeding are you really going to do?",
+        "rating",
+        "[]",
+        2
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+0 minutes'))",
+      "params": [
+        "perf-sv-13",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+0 minutes'))",
+      "params": [
+        "perf-r-087",
+        "perf-sv-13",
+        "perf-q-039",
+        "{{me}}",
+        "Tomatoes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+0 minutes'))",
+      "params": [
+        "perf-r-088",
+        "perf-sv-13",
+        "perf-q-040",
+        "{{me}}",
+        "no"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+0 minutes'))",
+      "params": [
+        "perf-r-089",
+        "perf-sv-13",
+        "perf-q-041",
+        "{{me}}",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+7 minutes'))",
+      "params": [
+        "perf-sv-13",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+7 minutes'))",
+      "params": [
+        "perf-r-090",
+        "perf-sv-13",
+        "perf-q-039",
+        "{{partner}}",
+        "Squash"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+7 minutes'))",
+      "params": [
+        "perf-r-091",
+        "perf-sv-13",
+        "perf-q-040",
+        "{{partner}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+7 minutes'))",
+      "params": [
+        "perf-r-092",
+        "perf-sv-13",
+        "perf-q-041",
+        "{{partner}}",
+        "3"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+14 minutes'))",
+      "params": [
+        "perf-sv-13",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+14 minutes'))",
+      "params": [
+        "perf-r-093",
+        "perf-sv-13",
+        "perf-q-039",
+        "{{adult2}}",
+        "Tomatoes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+14 minutes'))",
+      "params": [
+        "perf-r-094",
+        "perf-sv-13",
+        "perf-q-040",
+        "{{adult2}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+14 minutes'))",
+      "params": [
+        "perf-r-095",
+        "perf-sv-13",
+        "perf-q-041",
+        "{{adult2}}",
+        "4"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+21 minutes'))",
+      "params": [
+        "perf-sv-13",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+21 minutes'))",
+      "params": [
+        "perf-r-096",
+        "perf-sv-13",
+        "perf-q-039",
+        "{{child}}",
+        "Squash"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+21 minutes'))",
+      "params": [
+        "perf-r-097",
+        "perf-sv-13",
+        "perf-q-040",
+        "{{child}}",
+        "no"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+21 minutes'))",
+      "params": [
+        "perf-r-098",
+        "perf-sv-13",
+        "perf-q-041",
+        "{{child}}",
+        "5"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__response_receipts (survey_id, member_id, created_at) VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+28 minutes'))",
+      "params": [
+        "perf-sv-13",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+28 minutes'))",
+      "params": [
+        "perf-r-099",
+        "perf-sv-13",
+        "perf-q-039",
+        "{{child2}}",
+        "Tomatoes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+28 minutes'))",
+      "params": [
+        "perf-r-100",
+        "perf-sv-13",
+        "perf-q-040",
+        "{{child2}}",
+        "yes"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_surveys__responses (id, survey_id, question_id, member_id, answer, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+28 minutes'))",
+      "params": [
+        "perf-r-101",
+        "perf-sv-13",
+        "perf-q-041",
+        "{{child2}}",
+        "3"
+      ]
+    }
+  ]
+}

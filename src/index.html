@@ -646,14 +646,20 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     async function loadResponseCounts() {
       responseCounts = new Map();
       if (!RESPONSE_PROGRESS) return;
-      await Promise.all(surveys.map(async (survey) => {
+      // One request per 50 surveys (the hub's cap on session_ids), not one each.
+      const chunks = [];
+      for (let i = 0; i < surveys.length; i += 50) chunks.push(surveys.slice(i, i + 50));
+      await Promise.all(chunks.map(async (chunk) => {
         try {
-          const res = await fetch(`${RESPONSE_PROGRESS}?session_id=${encodeURIComponent(survey.id)}`);
+          const query = chunk.map(survey => `session_ids=${encodeURIComponent(survey.id)}`).join("&");
+          const res = await fetch(`${RESPONSE_PROGRESS}?${query}`);
           if (!res.ok) return;
           const body = await res.json();
-          responseCounts.set(survey.id, Number(body.responded) || 0);
-          if (body.you_responded) myResponseIds.add(survey.id);
-        } catch { /* leave this survey's count unknown rather than wrong */ }
+          for (const [id, progress] of Object.entries(body.sessions ?? {})) {
+            responseCounts.set(id, Number(progress.responded) || 0);
+            if (progress.you_responded) myResponseIds.add(id);
+          }
+        } catch { /* leave these surveys' counts unknown rather than wrong */ }
       }));
     }
 
