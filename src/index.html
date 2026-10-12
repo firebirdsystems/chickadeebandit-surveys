@@ -757,7 +757,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         await loadSurveyDetail(surveyId);
       } catch (e) {
         currentSurvey = null;
-        hubAlert(e.message);
+        console.error("[surveys] survey not loaded", e);
+        hubAlert("Couldn’t load the survey.");
         return;
       }
 
@@ -837,7 +838,14 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         });
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          throw new Error(body.error || "Couldn’t submit your response. Try again.");
+          // A 409 is the hub declining for good (closed, past its deadline,
+          // answered already): said in this app's words, with no "try again".
+          if (res.status === 409) {
+            throw Object.assign(new Error(body.already_responded
+              ? "You’ve already responded to this survey."
+              : "This survey is no longer taking responses."), { forUser: true });
+          }
+          throw new Error(body.error || `response-submit ${res.status}`);
         }
 
         // Update local state and render immediately — no reload.
@@ -872,7 +880,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         ).catch(() => {});
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Submit"; }
-        hubAlert(e.message);
+        if (!e?.forUser) console.error("[surveys] response not submitted", e);
+        hubAlert(e?.forUser ? e.message : "Couldn’t submit your response — try again.");
       }
     }
 
@@ -885,7 +894,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       try {
         await db(`UPDATE app_surveys__surveys SET status = 'closed', closed_at = ? WHERE id = ?`, [now, surveyId]);
       } catch (e) {
-        hubAlert(e.message);
+        console.error("[surveys] survey not closed", e);
+        hubAlert("Couldn’t close the survey — try again.");
         return;
       }
 
@@ -900,7 +910,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           // Closed, but the results did not load: back to the list to reopen it.
           view = "list";
           currentSurvey = null;
-          hubAlert(e.message);
+          console.error("[surveys] results not loaded", e);
+          hubAlert("Couldn’t load the survey’s results.");
         }
       }
       render();
@@ -1129,7 +1140,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         ]).catch(() => {});
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Launch Survey"; }
-        hubAlert(e.message);
+        console.error("[surveys] survey not launched", e);
+        hubAlert("Couldn’t launch the survey — try again.");
       }
     };
 
