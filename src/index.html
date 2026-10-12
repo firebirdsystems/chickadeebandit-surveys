@@ -186,6 +186,8 @@
     .empty h3 { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
     .empty p { font-size: 0.85rem; line-height: 1.6; }
     .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 0.9rem; }
+    .load-error { margin: 0 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--hub-tint-danger, #fee2e2); color: var(--hub-tint-danger-fg, #b91c1c); font-size: 0.9rem; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+    .load-error-retry { background: none; border: 1px solid currentColor; border-radius: 8px; padding: 5px 10px; font: inherit; font-weight: 600; color: inherit; cursor: pointer; flex-shrink: 0; }
 
     /* ── Take-survey flow ───────────────────────────────── */
     .take-header {
@@ -482,6 +484,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     let questionCounts  = new Map(); // surveyId -> number of questions
     let responseCounts  = new Map(); // surveyId -> number of distinct respondents
     let myResponseIds   = new Set(); // surveyIds I've responded to
+    let countUnknown    = new Set(); // surveyIds whose tally could not be read
 
     let listTab       = "active"; // "active" | "closed"
     let view          = "list";   // "list" | "take" | "results"
@@ -492,6 +495,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     let answers       = {};       // questionId -> answer string
 
     let modalEl = null;
+    let loadFailed = false; // set when the first load fails
 
     // ── DB helper ────────────────────────────────────────────────────────────
     async function db(sql, params = []) {
@@ -502,12 +506,12 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sql, params }),
         });
-        const json = await res.json();
+        const json = await res.json().catch(() => null);
         // The hub reports a refused write as a JSON body with an `error` key
         // (403 row policy, 400 bad statement, 507 over quota). fetch() does not
         // reject on those, so without this throw every caller's rollback and
         // error toast below is unreachable code.
-        if (!res.ok || json.error) throw new Error(json.error || `Database request failed (${res.status})`);
+        if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error(json?.error || `Database request failed (${res.status})`);
         return json;
       }
     }
@@ -583,10 +587,14 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         if (!ME) ME = members[0];
         return;
       }
-      try {
-        const res = await fetch(`${CONTEXT}?keys=family.members`);
-        members = ((await res.json())["family.members"]) ?? [];
-      } catch { members = []; }
+      // Throws when the members cannot be read, so firstLoad shows the
+      // banner rather than surveys with nobody to answer them.
+      const res = await fetch(`${CONTEXT}?keys=family.members`);
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error("Couldn’t reach the hub. Try again.");
+      // A 200 can still name a key the hub failed to read: that is a failed read too.
+      if (Array.isArray(json.$errors) && json.$errors.includes("family.members")) throw new Error("Couldn’t reach the hub. Try again.");
+      members = json["family.members"] ?? [];
       memberMap = new Map(members.map(m => [m.id, m]));
     }
 
@@ -645,6 +653,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
      */
     async function loadResponseCounts() {
       responseCounts = new Map();
+      countUnknown = new Set();
       if (!RESPONSE_PROGRESS) return;
       // One request per 50 surveys (the hub's cap on session_ids), not one each.
       const chunks = [];
@@ -653,13 +662,18 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         try {
           const query = chunk.map(survey => `session_ids=${encodeURIComponent(survey.id)}`).join("&");
           const res = await fetch(`${RESPONSE_PROGRESS}?${query}`);
-          if (!res.ok) return;
+          if (!res.ok) throw new Error(`response-progress ${res.status}`);
           const body = await res.json();
+          if (!body || typeof body !== "object" || body.error) throw new Error("response-progress");
           for (const [id, progress] of Object.entries(body.sessions ?? {})) {
             responseCounts.set(id, Number(progress.responded) || 0);
             if (progress.you_responded) myResponseIds.add(id);
           }
-        } catch { /* leave these surveys' counts unknown rather than wrong */ }
+        } catch {
+          // These surveys' counts are unknown, and drawn as unknown: no tally
+          // is shown for them, rather than "0 of N responded".
+          for (const survey of chunk) countUnknown.add(survey.id);
+        }
       }));
     }
 
@@ -739,7 +753,13 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       const survey = surveys.find(s => s.id === surveyId);
       if (!survey) return;
       currentSurvey = survey;
-      await loadSurveyDetail(surveyId);
+      try {
+        await loadSurveyDetail(surveyId);
+      } catch (e) {
+        currentSurvey = null;
+        hubAlert(e.message);
+        return;
+      }
 
       if (isSurveyOpen(survey) && !myResponseIds.has(surveyId)) {
         view = "take";
@@ -815,7 +835,10 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ session_id: survey.id, responses }),
         });
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || "Couldn’t submit your response. Try again.");
+        }
 
         // Update local state and render immediately — no reload.
         currentResponsesCache.delete(survey.id); // results will reload fresh once closed
@@ -849,6 +872,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         ).catch(() => {});
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Submit"; }
+        hubAlert(e.message);
       }
     }
 
@@ -858,14 +882,26 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       if (!survey) return;
       const now = nowIso();
 
-      await db(`UPDATE app_surveys__surveys SET status = 'closed', closed_at = ? WHERE id = ?`, [now, surveyId]);
+      try {
+        await db(`UPDATE app_surveys__surveys SET status = 'closed', closed_at = ? WHERE id = ?`, [now, surveyId]);
+      } catch (e) {
+        hubAlert(e.message);
+        return;
+      }
 
       survey.status = "closed";
       survey.closed_at = now;
       currentResponsesCache.delete(surveyId);
       if (currentSurvey?.id === surveyId) {
-        await loadSurveyDetail(surveyId);
-        view = "results";
+        try {
+          await loadSurveyDetail(surveyId);
+          view = "results";
+        } catch (e) {
+          // Closed, but the results did not load: back to the list to reopen it.
+          view = "list";
+          currentSurvey = null;
+          hubAlert(e.message);
+        }
       }
       render();
 
@@ -1093,6 +1129,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         ]).catch(() => {});
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Launch Survey"; }
+        hubAlert(e.message);
       }
     };
 
@@ -1119,6 +1156,13 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     }
 
     function renderListView() {
+      // Nothing is known about the surveys: no counts, no empty state, no create.
+      if (loadFailed) return `
+        <div class="page-header">
+          <h1>${glyph("survey")} Surveys</h1>
+        </div>
+        <div class="load-error" data-testid="load-error" role="alert"><span>Couldn’t load surveys.</span> <button type="button" class="load-error-retry" data-testid="load-retry" onclick="firstLoad()">Try again</button></div>
+      `;
       const active = surveys.filter(s => isSurveyOpen(s));
       const closed = surveys.filter(s => !isSurveyOpen(s));
       const scoped = listTab === "active" ? active : closed;
@@ -1166,7 +1210,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
     function surveyCardHtml(s) {
       const qCount = questionCounts.get(s.id) ?? 0;
-      const rCount = responseCounts.get(s.id) ?? 0;
+      const rCount = countUnknown.has(s.id) ? null : responseCounts.get(s.id) ?? 0;
       const total = members.length;
       const responded = myResponseIds.has(s.id);
 
@@ -1187,7 +1231,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             <div class="survey-meta" data-testid="survey-meta">
               ${badges.join("")}
               <span class="badge badge-closed">${qCount} question${qCount === 1 ? "" : "s"}</span>
-              <span class="badge badge-closed">${rCount} of ${total} responded</span>
+              ${rCount === null ? "" : `<span class="badge badge-closed">${rCount} of ${total} responded</span>`}
             </div>
           </div>
         </div>
@@ -1260,7 +1304,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
     function renderResultsView() {
       const survey = currentSurvey;
-      const rCount = responseCounts.get(survey.id) ?? 0;
+      const rCount = countUnknown.has(survey.id) ? null : responseCounts.get(survey.id) ?? 0;
       const total = members.length;
       const closed = !isSurveyOpen(survey);
       const manage = canManage(survey, ME) && (!IS_ROSTER || IS_ADMIN);
@@ -1282,7 +1326,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           <div class="card waiting-card" data-testid="waiting-card">
             <div class="icon">${chickadee("waiting")}</div>
             <h3>Thanks for responding!</h3>
-            <p>Results will be shown once the survey closes.<br>${rCount} of ${total} members have responded so far.</p>
+            <p>Results will be shown once the survey closes.${rCount === null ? "" : `<br>${rCount} of ${total} members have responded so far.`}</p>
           </div>
           </div>
         `;
@@ -1299,7 +1343,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           </div>
           ${closeBtn}
         </div>
-        <div class="response-summary" data-testid="response-summary">${rCount} of ${total} members responded${survey.anonymous ? " · anonymous" : ""}</div>
+        <div class="response-summary" data-testid="response-summary">${rCount === null ? "Couldn’t load the response count" : `${rCount} of ${total} members responded`}${survey.anonymous ? " · anonymous" : ""}</div>
         ${blocks}
         </div>
       `;
@@ -1395,11 +1439,18 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     }
 
     // ── Init ─────────────────────────────────────────────────────────────────
-    (async () => {
-      await Promise.all([loadMembers(), loadSurveys()]);
-      handleDeepLink();
+    async function firstLoad() {
+      try {
+        await Promise.all([loadMembers(), loadSurveys()]);
+        loadFailed = false;
+      } catch {
+        loadFailed = true;
+      }
+      if (!loadFailed) handleDeepLink();
       render();
-    })();
+    }
+    window.firstLoad = firstLoad;
+    firstLoad();
   </script>
 </body>
 </html>
