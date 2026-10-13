@@ -516,6 +516,22 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       }
     }
 
+    // Atomic multi-statement form of /api/db — the hub runs a batch as one
+    // transaction (at most 25 statements), so the statements land whole or not
+    // at all.
+    async function dbBatch(statements) {
+      if (!DB || !statements.length) return [];
+      const res = await fetch(DB, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statements }),
+      });
+      const json = await res.json().catch(() => null);
+      // A 200 without a `results` array is not a batch that ran.
+      if (!res.ok || !json || typeof json !== "object" || json.error || !Array.isArray(json.results)) throw new Error(json?.error || `Database request failed (${res.status})`);
+      return json.results;
+    }
+
     // ── Demo data ────────────────────────────────────────────────────────────
     const DEMO_MEMBERS = [
       { id: "demo-1", name: "Alex", role: "adult" },
@@ -1112,16 +1128,22 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       }));
 
       try {
-        await db(
-          `INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closes_at) VALUES (?, ?, ?, 'open', ?, ?, ?, ?)`,
-          [surveyId, title, description, anonymous, ME.id, now, closesAt]
-        );
         const placeholders = questions.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
         const params = questions.flatMap(q => [q.id, q.survey_id, q.text, q.type, JSON.stringify(q.options), q.position]);
-        await db(
-          `INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES ${placeholders}`,
-          params
-        );
+        // One batch: the survey and its questions land together or not at all,
+        // so a refused launch leaves no question-less survey behind for the
+        // retry to duplicate. Always two statements (the questions are one
+        // multi-row INSERT), well under the hub's batch limit.
+        await dbBatch([
+          {
+            sql: `INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closes_at) VALUES (?, ?, ?, 'open', ?, ?, ?, ?)`,
+            params: [surveyId, title, description, anonymous, ME.id, now, closesAt],
+          },
+          {
+            sql: `INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES ${placeholders}`,
+            params,
+          },
+        ]);
 
         // Update local state and render immediately — no reload.
         surveys = [{ id: surveyId, title, description, status: "open", anonymous, created_by: ME.id, created_at: now, closed_at: null, closes_at: closesAt }, ...surveys];
