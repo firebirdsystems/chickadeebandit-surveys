@@ -165,6 +165,95 @@
       ]
     },
     {
+      "name": "launching a survey writes the survey and its questions as one batch",
+      "members": {
+        "parent": "adult"
+      },
+      "steps": [
+        {
+          "action": "batch",
+          "as": "parent",
+          "statements": [
+            {
+              "sql": "INSERT INTO app_surveys__surveys (id, title, description, status, anonymous, created_by, created_at, closes_at) VALUES (?, ?, ?, 'open', ?, ?, ?, ?)",
+              "params": [
+                "s_batch",
+                "Dinner ideas",
+                "",
+                0,
+                "{{parent}}",
+                "2026-01-01T00:00:00Z",
+                null
+              ]
+            },
+            {
+              "sql": "INSERT INTO app_surveys__questions (id, survey_id, text, type, options, position) VALUES (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)",
+              "params": [
+                "q_b1",
+                "s_batch",
+                "Pizza on Friday?",
+                "yesno",
+                "[]",
+                0,
+                "q_b2",
+                "s_batch",
+                "Pick a night",
+                "choice",
+                "[\"Friday\",\"Saturday\"]",
+                1
+              ]
+            }
+          ],
+          "expect": {
+            "status": 200,
+            "changed": [
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT id, title, status FROM app_surveys__surveys",
+          "expect": {
+            "status": 200,
+            "rowCount": 1,
+            "rowsContain": [
+              {
+                "id": "s_batch",
+                "title": "Dinner ideas",
+                "status": "open"
+              }
+            ]
+          }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT id, survey_id, type, position FROM app_surveys__questions ORDER BY position",
+          "expect": {
+            "status": 200,
+            "rowCount": 2,
+            "rowsContain": [
+              {
+                "id": "q_b1",
+                "survey_id": "s_batch",
+                "type": "yesno",
+                "position": 0
+              },
+              {
+                "id": "q_b2",
+                "survey_id": "s_batch",
+                "type": "choice",
+                "position": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "a closed survey is frozen, and an existing survey's anonymity cannot be flipped",
       "members": {
         "parent": "adult"

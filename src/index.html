@@ -902,16 +902,31 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     }
 
     // ── Close survey ─────────────────────────────────────────────────────────
+    let closingSurvey = false; // a second click must not send a second close
     window.closeSurvey = async function(surveyId) {
       const survey = surveys.find(s => s.id === surveyId);
-      if (!survey) return;
+      if (!survey || survey.status === "closed" || closingSurvey) return;
       const now = nowIso();
 
+      let res;
+      closingSurvey = true;
       try {
-        await db(`UPDATE app_surveys__surveys SET status = 'closed', closed_at = ? WHERE id = ?`, [now, surveyId]);
+        res = await db(`UPDATE app_surveys__surveys SET status = 'closed', closed_at = ? WHERE id = ?`, [now, surveyId]);
       } catch (e) {
         console.error("[surveys] survey not closed", e);
         hubAlert("Couldn’t close the survey — try again.");
+        return;
+      } finally {
+        closingSurvey = false;
+      }
+      // The hub answers 200 with nothing changed when the survey is already
+      // closed (frozen), gone, or not this member's to close. Nothing was
+      // closed here, so nothing is announced: show what is stored instead.
+      if (res.changed === 0) {
+        currentResponsesCache.delete(surveyId);
+        try { await loadSurveys(); } catch (e) { console.error("[surveys] surveys not reloaded", e); }
+        backToList();
+        hubAlert("This survey wasn’t closed — it may already be closed.");
         return;
       }
 
