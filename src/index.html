@@ -457,7 +457,7 @@
     import {
       surveyStatus, isSurveyOpen, hasResponded, responseCount, canManage,
       choiceResults, ratingAverage, ratingDistribution, yesNoSplit,
-      isAnswerValid, allAnswered, searchableFields,
+      isAnswerValid, allAnswered, searchableFields, failureLine,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -511,7 +511,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         // (403 row policy, 400 bad statement, 507 over quota). fetch() does not
         // reject on those, so without this throw every caller's rollback and
         // error toast below is unreachable code.
-        if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error(json?.error || `Database request failed (${res.status})`);
+        if (!res.ok || !json || typeof json !== "object" || json.error) throw Object.assign(new Error(json?.error || `Database request failed (${res.status})`), { status: res.status, code: json?.code });
         return json;
       }
     }
@@ -528,7 +528,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       });
       const json = await res.json().catch(() => null);
       // A 200 without a `results` array is not a batch that ran.
-      if (!res.ok || !json || typeof json !== "object" || json.error || !Array.isArray(json.results)) throw new Error(json?.error || `Database request failed (${res.status})`);
+      if (!res.ok || !json || typeof json !== "object" || json.error || !Array.isArray(json.results)) throw Object.assign(new Error(json?.error || `Database request failed (${res.status})`), { status: res.status, code: json?.code });
       return json.results;
     }
 
@@ -861,7 +861,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
               ? "You’ve already responded to this survey."
               : "This survey is no longer taking responses."), { forUser: true });
           }
-          throw new Error(body.error || `response-submit ${res.status}`);
+          throw Object.assign(new Error(body.error || `response-submit ${res.status}`), { status: res.status, code: body.code });
         }
 
         // Update local state and render immediately — no reload.
@@ -897,7 +897,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Submit"; }
         if (!e?.forUser) console.error("[surveys] response not submitted", e);
-        hubAlert(e?.forUser ? e.message : "Couldn’t submit your response — try again.");
+        hubAlert(e?.forUser ? e.message : failureLine(e, { action: "submit your response", thing: "survey" }));
       }
     }
 
@@ -914,19 +914,28 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         res = await db(`UPDATE app_surveys__surveys SET status = 'closed', closed_at = ? WHERE id = ?`, [now, surveyId]);
       } catch (e) {
         console.error("[surveys] survey not closed", e);
-        hubAlert("Couldn’t close the survey — try again.");
+        hubAlert(failureLine(e, { action: "close the survey", thing: "survey" }));
         return;
       } finally {
         closingSurvey = false;
       }
       // The hub answers 200 with nothing changed when the survey is already
       // closed (frozen), gone, or not this member's to close. Nothing was
-      // closed here, so nothing is announced: show what is stored instead.
+      // closed here, so nothing is announced: re-read this survey to say
+      // which, and show what is stored. A failed re-read can say neither, so
+      // the line stays the plain retry.
       if (res.changed === 0) {
+        let line = failureLine(null, { action: "close the survey", thing: "survey" });
+        try {
+          const stored = (await db(`SELECT status FROM app_surveys__surveys WHERE id = ?`, [surveyId])).rows?.[0];
+          if (!stored) line = failureLine(null, { thing: "survey", gone: true });
+          else if (stored.status === "closed") line = "This survey is already closed.";
+          else line = failureLine({ status: 403 }, { action: "close the survey", thing: "survey" });
+        } catch (e) { console.error("[surveys] survey not re-read", e); }
         currentResponsesCache.delete(surveyId);
         try { await loadSurveys(); } catch (e) { console.error("[surveys] surveys not reloaded", e); }
         backToList();
-        hubAlert("This survey wasn’t closed — it may already be closed.");
+        hubAlert(line);
         return;
       }
 
@@ -1178,7 +1187,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Launch Survey"; }
         console.error("[surveys] survey not launched", e);
-        hubAlert("Couldn’t launch the survey — try again.");
+        hubAlert(failureLine(e, { action: "launch the survey", thing: "survey" }));
       }
     };
 

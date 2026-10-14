@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   surveyStatus, isSurveyOpen, respondentIds, hasResponded, responseCount,
   canManage, choiceResults, ratingAverage, ratingDistribution, yesNoSplit,
-  isAnswerValid, allAnswered, orderSurveysForWidget, searchableFields,
+  isAnswerValid, allAnswered, orderSurveysForWidget, searchableFields, failureLine,
 } from "../src/logic.js";
 
 const adult = { id: "m-adult", name: "Alex", role: "adult" };
@@ -260,5 +260,52 @@ describe("searchableFields", () => {
   it("matches on the description, not just the survey title", () => {
     expect(searchableFields({ title: "Feedback", description: "summer camp catering" }))
       .toContain("summer camp catering");
+  });
+});
+
+describe("failureLine", () => {
+  const words = { action: "close the survey", thing: "survey" };
+  const err = (props, message = "Database request failed") => Object.assign(new Error(message), props);
+
+  it("names a duplicate by its code, and by the hub's text where the code is missing", () => {
+    expect(failureLine(err({ status: 400, code: "UNIQUE_CONSTRAINT" }), words)).toBe("That survey already exists.");
+    expect(failureLine(err({ status: 400 }, "UNIQUE constraint failed: app_surveys__surveys.id"), words)).toBe("That survey already exists.");
+  });
+
+  it("says a 403 is not allowed, with no try again", () => {
+    expect(failureLine(err({ status: 403 }), words)).toBe("You don’t have permission to close the survey.");
+  });
+
+  it("says a 507 is a full household store", () => {
+    expect(failureLine(err({ status: 507 }), words)).toBe("The household’s storage is full — free up space first.");
+  });
+
+  it("says a 404, or a re-read that found no row, is removed", () => {
+    expect(failureLine(err({ status: 404 }), words)).toBe("This survey has been removed.");
+    expect(failureLine(null, { ...words, gone: true })).toBe("This survey has been removed.");
+    expect(failureLine(err({ status: 409 }), { ...words, gone: true })).toBe("This survey has been removed.");
+  });
+
+  it("says a 409, or a re-read that found the row changed, is someone else's change", () => {
+    expect(failureLine(err({ status: 409 }), words)).toBe("This survey was changed by someone else — check it first.");
+    expect(failureLine(null, { ...words, gone: false })).toBe("This survey was changed by someone else — check it first.");
+  });
+
+  it("keeps try again for no answer, a hub failure, and any other 400", () => {
+    for (const e of [new TypeError("Failed to fetch"), err({ status: 500 }), err({ status: 503 }), err({ status: 400 }), undefined]) {
+      expect(failureLine(e, words)).toBe("Couldn’t close the survey — try again.");
+    }
+  });
+
+  it("says neither removed nor changed when the re-read after changed: 0 failed", () => {
+    expect(failureLine(null, words)).toBe("Couldn’t close the survey — try again.");
+  });
+
+  it("says an unguarded write whose row is still there was refused", () => {
+    expect(failureLine({ status: 403 }, words)).toBe("You don’t have permission to close the survey.");
+  });
+
+  it("never shows the hub's text", () => {
+    expect(failureLine(err({ status: 403 }, "Row policy denied"), words)).not.toMatch(/Row policy/);
   });
 });
