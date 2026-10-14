@@ -34,16 +34,6 @@
     "surveys": {
       "kind": "adult_writable",
       "steward_writes_only": true,
-      "retain_days": {
-        "default": 730,
-        "timestamp_column": "created_at",
-        "override_key": "survey_history",
-        "dependent_tables": [
-          { "table": "questions", "foreign_key": "survey_id" },
-          { "table": "responses", "foreign_key": "survey_id" },
-          { "table": "response_receipts", "foreign_key": "survey_id" }
-        ]
-      },
       "frozen_when": {
         "status_column": "status",
         "locked_values": ["closed"]
@@ -66,6 +56,18 @@
       "adults_bypass": false,
       "member_can_update": false,
       "endpoint_writes_only": true
+    }
+  },
+  "retention": {
+    "surveys": {
+      "default": 730,
+      "timestamp_column": "created_at",
+      "override_key": "survey_history",
+      "dependent_tables": [
+        { "table": "questions", "foreign_key": "survey_id" },
+        { "table": "responses", "foreign_key": "survey_id" },
+        { "table": "response_receipts", "foreign_key": "survey_id" }
+      ]
     }
   },
   "anonymous_responses": {
@@ -130,9 +132,6 @@
   },
   "nav": { "label": "Surveys" },
   "widget": { "label": "Surveys", "size": "small" },
-  "resource_limits": {
-    "max_db_bytes": 104857600
-  },
   "icon": "📋",
   "ai_access": {
     "allowed": true,
