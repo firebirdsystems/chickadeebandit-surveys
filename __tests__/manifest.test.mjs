@@ -253,7 +253,7 @@ describe("member_references", () => {
 // answers with it, which is the correct unit.
 describe("retention", () => {
   it("expires the survey and cascades to questions, responses and receipts", () => {
-    expect(manifest.row_policies.surveys.retain_days).toEqual({
+    expect(manifest.retention.surveys).toEqual({
       default: 730,
       timestamp_column: "created_at",
       override_key: "survey_history",
@@ -267,6 +267,7 @@ describe("retention", () => {
 
   it("does not put retention on the anonymous protocol's own tables", () => {
     for (const table of ["responses", "response_receipts"]) {
+      expect(manifest.retention?.[table]).toBeUndefined();
       expect(manifest.row_policies[table].retain_days).toBeUndefined();
     }
   });

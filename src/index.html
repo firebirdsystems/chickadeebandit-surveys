@@ -458,6 +458,7 @@
       surveyStatus, isSurveyOpen, hasResponded, responseCount, canManage,
       choiceResults, ratingAverage, ratingDistribution, yesNoSplit,
       isAnswerValid, allAnswered, searchableFields, failureLine,
+      outcomeUnknown, launchDiffers, SAVED_AS_FIRST,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -1136,20 +1137,28 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
       const btn = modalEl?.querySelector(".modal-actions .btn-primary");
       if (btn) { btn.disabled = true; btn.textContent = "Launching…"; }
+      // The form this launch is for: a close after the awaits must not shut a newer one.
+      const form = surveyForm;
 
-      const surveyId = uid();
+      // The survey's id and each question's are the form's, minted on the first
+      // Launch and sent on every retry: a try whose answer was lost may have
+      // stored the survey, and a second press must find it rather than launch
+      // it twice.
+      const surveyId = (surveyForm.pinnedId ??= uid());
       const now = nowIso();
-      const title = surveyForm.title;
+      let title = surveyForm.title;
       const description = surveyForm.description;
       const anonymous = surveyForm.anonymous ? 1 : 0;
       // Stored as the raw datetime-local wall time (no zone suffix). The hub
       // resolves it in the household's timezone — see the anonymous_responses
       // session_deadline_column contract — so 8pm means 8pm here.
       const closesAt = surveyForm.closesAt || null;
-      const questions = surveyForm.questions.map((q, i) => ({
-        id: uid(), survey_id: surveyId, text: q.text.trim(), type: q.type,
+      let questions = surveyForm.questions.map((q, i) => ({
+        id: (q.pinnedId ??= uid()), survey_id: surveyId, text: q.text.trim(), type: q.type,
         options: q.type === "choice" ? q.options : [], position: i,
       }));
+      let note = "";
+      let storedSurvey = null; // set when an earlier try's launch is found stored
 
       try {
         const placeholders = questions.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
@@ -1168,27 +1177,53 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             params,
           },
         ]);
-
-        // Update local state and render immediately — no reload.
-        surveys = [{ id: surveyId, title, description, status: "open", anonymous, created_by: ME.id, created_at: now, closed_at: null, closes_at: closesAt }, ...surveys];
-        currentQuestionsCache.set(surveyId, questions);
-        questionCounts.set(surveyId, questions.length);
-        responseCounts.set(surveyId, 0);
-        listTab = "active";
-
-        closeCreateModal();
-        render();
-
-        Promise.all([
-          notify(`New survey: ${title}`, `${ME.name} created a new survey.`),
-          logActivity("survey_created", `${ME.name} created a new survey: "${title}"`, surveyId),
-          publishEvent("survey.created", { surveyId, title }),
-        ]).catch(() => {});
       } catch (e) {
-        if (btn) { btn.disabled = false; btn.textContent = "Launch Survey"; }
-        console.error("[surveys] survey not launched", e);
-        hubAlert(failureLine(e, { action: "launch the survey", thing: "survey" }));
+        // Unknown outcome: read the survey back by the pinned id. The batch is
+        // atomic, so a survey found means its questions landed with it: an
+        // earlier try stored the launch and its success path runs now, once.
+        // Not found, or the read failed: the launch fails, the ids stay pinned.
+        let stored = null;
+        if (DB && outcomeUnknown(e)) {
+          try {
+            const [sRes, qRes] = await Promise.all([
+              db("SELECT * FROM app_surveys__surveys WHERE id = ?", [surveyId]),
+              db("SELECT * FROM app_surveys__questions WHERE survey_id = ? ORDER BY position", [surveyId]),
+            ]);
+            const survey = sRes.rows?.[0];
+            if (survey) stored = { survey, questions: (qRes.rows ?? []).map(q => ({ ...q, options: JSON.parse(q.options || "[]") })) };
+          } catch (readErr) { console.error("[surveys] launch re-read failed", readErr); }
+        }
+        if (!stored) {
+          if (btn) { btn.disabled = false; btn.textContent = "Launch Survey"; }
+          console.error("[surveys] survey not launched", e);
+          hubAlert(failureLine(e, { action: "launch the survey", thing: "survey" }));
+          return;
+        }
+        console.error("[surveys] launch answer lost; it was stored", e);
+        // Edited since that first try: what was stored is kept, and said so.
+        if (launchDiffers(stored, { title, description, anonymous, closes_at: closesAt, questions })) note = SAVED_AS_FIRST;
+        storedSurvey = stored.survey;
+        title = storedSurvey.title;
+        questions = stored.questions;
       }
+
+      // Update local state and render immediately — no reload.
+      const row = storedSurvey ?? { id: surveyId, title, description, status: "open", anonymous, created_by: ME.id, created_at: now, closed_at: null, closes_at: closesAt };
+      surveys = [row, ...surveys.filter(s => s.id !== surveyId)];
+      currentQuestionsCache.set(surveyId, questions);
+      questionCounts.set(surveyId, questions.length);
+      responseCounts.set(surveyId, 0);
+      listTab = "active";
+
+      if (surveyForm === form) closeCreateModal();
+      render();
+      if (note) hubAlert(note);
+
+      Promise.all([
+        notify(`New survey: ${title}`, `${ME.name} created a new survey.`),
+        logActivity("survey_created", `${ME.name} created a new survey: "${title}"`, surveyId),
+        publishEvent("survey.created", { surveyId, title }),
+      ]).catch(() => {});
     };
 
     // ── Rendering ────────────────────────────────────────────────────────────

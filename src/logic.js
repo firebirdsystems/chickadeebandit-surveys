@@ -189,3 +189,36 @@ export function failureLine(e, { action, thing, gone } = {}) {
   if (status === 409) return `This ${thing} was changed by someone else — check it first.`;
   return `Couldn’t ${action} — try again.`;
 }
+
+/**
+ * "Retry after a lost response" (app-template guide): whether a failed
+ * write's answer leaves its outcome unknown — no status, a 400, or a 5xx
+ * other than 507 — so the page reads the survey back by its pinned id. A
+ * `UNIQUE_CONSTRAINT` answer is a 400 too: the usual retry of a create that
+ * landed collides on its own pinned id. Only finding the survey under that id
+ * says it landed; not found keeps the "already exists" line.
+ */
+export function outcomeUnknown(e) {
+  if (e?.code === "UNIQUE_CONSTRAINT" || /UNIQUE constraint failed/i.test(String(e?.message ?? ""))) return true;
+  const status = Number(e?.status) || 0;
+  return status === 0 || status === 400 || (status >= 500 && status !== 507);
+}
+
+/**
+ * Whether a launch an earlier try stored differs from what the form holds
+ * now: the survey's own fields, and its questions by position (pinned id,
+ * text, type, options). Compared as text, a missing value as empty.
+ * `stored` is `{ survey, questions }` with each question's `options` parsed.
+ */
+export function launchDiffers(stored, typed) {
+  const text = (v) => String(v ?? "");
+  const s = stored?.survey ?? {};
+  if (["title", "description", "anonymous", "closes_at"].some((k) => text(s[k]) !== text(typed[k]))) return true;
+  const a = stored?.questions ?? [];
+  const b = typed.questions ?? [];
+  if (a.length !== b.length) return true;
+  return b.some((q, i) => text(a[i]?.id) !== text(q.id) || text(a[i]?.text) !== text(q.text)
+    || text(a[i]?.type) !== text(q.type) || JSON.stringify(a[i]?.options ?? []) !== JSON.stringify(q.options ?? []));
+}
+
+export const SAVED_AS_FIRST = "Saved as first entered — check it and update what changed.";
