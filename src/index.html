@@ -1183,6 +1183,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         // earlier try stored the launch and its success path runs now, once.
         // Not found, or the read failed: the launch fails, the ids stay pinned.
         let stored = null;
+        let readFailed = false;
         if (DB && outcomeUnknown(e)) {
           try {
             const [sRes, qRes] = await Promise.all([
@@ -1191,12 +1192,14 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             ]);
             const survey = sRes.rows?.[0];
             if (survey) stored = { survey, questions: (qRes.rows ?? []).map(q => ({ ...q, options: JSON.parse(q.options || "[]") })) };
-          } catch (readErr) { console.error("[surveys] launch re-read failed", readErr); }
+          } catch (readErr) { console.error("[surveys] launch re-read failed", readErr); readFailed = true; }
         }
         if (!stored) {
           if (btn) { btn.disabled = false; btn.textContent = "Launch Survey"; }
           console.error("[surveys] survey not launched", e);
-          hubAlert(failureLine(e, { action: "launch the survey", thing: "survey" }));
+          // The ids are ours: with the read-back failed, a UNIQUE answer may be this
+          // form's own first try, so nothing is known — "try again", not "already exists".
+          hubAlert(failureLine(readFailed ? null : e, { action: "launch the survey", thing: "survey" }));
           return;
         }
         console.error("[surveys] launch answer lost; it was stored", e);
